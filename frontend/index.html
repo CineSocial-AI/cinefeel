@@ -1,0 +1,2737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineSocial - Movie Rating & Comments</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .user-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex: 1;
+            max-width: 600px;
+            margin: 0 30px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e0e7ff;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+        }
+
+        .search-type-select {
+            padding: 10px;
+            border: 2px solid #e0e7ff;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            background: white;
+            cursor: pointer;
+        }
+
+        .search-results {
+            margin-top: 20px;
+        }
+
+        .search-result-item {
+            padding: 15px;
+            border: 2px solid #e0e7ff;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .search-result-item:hover {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+
+        .search-result-image {
+            width: 60px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .search-result-person-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .search-result-info {
+            flex: 1;
+        }
+
+        .search-result-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #667eea;
+            color: white;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #e0e7ff;
+            color: #667eea;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        /* Login/Register */
+        .auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            background: #e0e7ff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .auth-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e7ff;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Movies Grid */
+        .movies-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .movie-card {
+            background: #f9fafb;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            background: #e0e7ff;
+        }
+
+        .movie-info {
+            padding: 15px;
+        }
+
+        .movie-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1f2937;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .movie-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        /* Movie Detail */
+        .movie-detail {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .movie-detail-poster {
+            width: 100%;
+            border-radius: 12px;
+        }
+
+        .movie-detail-info h1 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+
+        .movie-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .movie-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .overview {
+            line-height: 1.6;
+            color: #4b5563;
+            margin-bottom: 20px;
+        }
+
+        /* Rate Section */
+        .rate-section {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .rate-slider {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .rate-slider input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #e0e7ff;
+            outline: none;
+        }
+
+        .rate-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            min-width: 50px;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            margin-top: 30px;
+        }
+
+        .comment-form {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 2px solid #e0e7ff;
+            border-radius: 8px;
+            resize: vertical;
+        }
+
+        .comment {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .comment-author {
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .comment-date {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .comment-content {
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .reaction-btn {
+            padding: 5px 12px;
+            border: 2px solid #e0e7ff;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .reaction-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .reply {
+            margin-left: 30px;
+            margin-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #d1fae5;
+            color: #059669;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #e0e7ff;
+            color: #667eea;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Users Page */
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .user-card {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .user-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .user-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 5px;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .user-stats {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 10px 0;
+            border-top: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .user-stat {
+            text-align: center;
+        }
+
+        .user-stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .user-stat-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e0e7ff;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .filter-toggle-btn {
+            width: 100%;
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .filter-toggle-btn:hover {
+            background: #5568d3;
+        }
+
+        .filter-content {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1f2937;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 8px 12px;
+            border: 2px solid #e0e7ff;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            border-color: #667eea;
+        }
+
+        .filter-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .close-btn {
+            color: #aaa;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+        }
+
+        /* Movie List Page */
+        .list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .list-card {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .list-card h3 {
+            font-size: 18px;
+            color: #1f2937;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .list-card h3:hover {
+            color: #667eea;
+        }
+
+        .list-card p {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+
+        .list-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 15px;
+        }
+
+        .list-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-to-list-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .add-to-list-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Profile Page Styles */
+        .profile-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .profile-header {
+            position: relative;
+            margin-bottom: 80px;
+        }
+
+        .profile-background {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-background img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-background-upload {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+
+        .profile-avatar-container {
+            position: absolute;
+            bottom: -60px;
+            left: 30px;
+            display: flex;
+            align-items: flex-end;
+            gap: 20px;
+        }
+
+        .profile-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 5px solid white;
+            background: #e0e7ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar-upload {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: white;
+            border-radius: 50%;
+            padding: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .profile-info {
+            margin-bottom: 10px;
+        }
+
+        .profile-name {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .profile-email {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 30px;
+            margin: 20px 30px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        .upload-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .upload-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .upload-btn-small {
+            padding: 6px;
+            font-size: 18px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .profile-bio {
+            margin: 20px 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .profile-section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo" onclick="renderApp()" style="cursor: pointer;">🎬 CineSocial</div>
+            <div class="search-container">
+                <select id="searchType" class="search-type-select">
+                    <option value="all">All</option>
+                    <option value="movies">Movies</option>
+                    <option value="people">People</option>
+                </select>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search movies or people..." onkeypress="if(event.key==='Enter') handleSearch()">
+                <button class="btn btn-primary" onclick="handleSearch()">🔍 Search</button>
+            </div>
+            <div class="user-info" id="userInfo"></div>
+        </div>
+
+        <div id="app"></div>
+    </div>
+
+    <!-- Modals -->
+    <div id="addToListModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('addToListModal')">&times;</span>
+            <h2>Add to Movie List</h2>
+            <div id="addToListMessage"></div>
+            <div id="addToListModalBody" style="max-height: 300px; overflow-y: auto;"></div>
+            <div style="margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="openCreateListModalFromAdd()">Create New List</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="createListModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('createListModal')">&times;</span>
+            <h2>Create New Movie List</h2>
+            <div id="createListMessage"></div>
+            <div class="form-group">
+                <label>List Name</label>
+                <input type="text" id="newListName" placeholder="e.g., My Awesome Sci-Fi Collection">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="newListDescription" placeholder="A short description of your list..."></textarea>
+            </div>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="newListIsPublic" checked> Make this list public
+                </label>
+            </div>
+            <button class="btn btn-primary" onclick="handleCreateList()">Create List</button>
+        </div>
+    </div>
+
+    <script>
+
+        const API_BASE = 'http://localhost:5047/api';
+        //const API_BASE = 'https://localhost:7221/api';
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        let activeController = null; // For aborting requests
+
+        // Utility Functions
+        function showError(message) {
+            return `<div class="error">${message}</div>`;
+        }
+
+        function showSuccess(message) {
+            return `<div class="success">${message}</div>`;
+        }
+
+        function formatDate(date) {
+            return new Date(date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // API Functions
+        async function apiCall(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    ...options,
+                    headers
+                });
+
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ message: 'API Error' }));
+                    throw new Error(error.message || 'API Error');
+                }
+
+                return response.json();
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('Request was cancelled');
+                }
+                throw error;
+            }
+        }
+
+        // Auth Functions
+        async function login(usernameOrEmail, password) {
+            const data = await apiCall('/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ usernameOrEmail, password })
+            });
+
+            authToken = data.data.token;
+            currentUser = {
+                userId: data.data.userId,
+                username: data.data.username,
+                email: data.data.email
+            };
+
+            localStorage.setItem('authToken', authToken);
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+            renderApp();
+        }
+
+        async function register(username, email, password) {
+            const data = await apiCall('/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({ username, email, password })
+            });
+
+            authToken = data.data.token;
+            currentUser = {
+                userId: data.data.userId,
+                username: data.data.username,
+                email: data.data.email
+            };
+
+            localStorage.setItem('authToken', authToken);
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+            renderApp();
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            renderApp();
+        }
+
+        // Movie Functions
+        async function getMovies(page = 1) {
+            return await apiCall(`/movies?page=${page}&pageSize=20`);
+        }
+
+        async function getFilteredMovies(filters = {}) {
+            const params = new URLSearchParams();
+            params.append('page', filters.page || 1);
+            params.append('pageSize', filters.pageSize || 20);
+
+            if (filters.search) params.append('search', filters.search);
+            if (filters.genreId) params.append('genreId', filters.genreId);
+            if (filters.year) params.append('year', filters.year);
+            if (filters.decade) params.append('decade', filters.decade);
+            if (filters.yearFrom) params.append('yearFrom', filters.yearFrom);
+            if (filters.yearTo) params.append('yearTo', filters.yearTo);
+            if (filters.minRating) params.append('minRating', filters.minRating);
+            if (filters.maxRating) params.append('maxRating', filters.maxRating);
+            if (filters.language) params.append('language', filters.language);
+            if (filters.sortBy) params.append('sortBy', filters.sortBy);
+
+            return await apiCall(`/Movies/browse?${params.toString()}`);
+        }
+
+        async function getGenres() {
+            return await apiCall('/Movies/genres');
+        }
+
+        async function getMovieDetail(movieId) {
+            return await apiCall(`/movies/${movieId}`);
+        }
+
+        async function rateMovie(movieId, rating) {
+            return await apiCall(`/movies/${movieId}/rates`, {
+                method: 'POST',
+                body: JSON.stringify({ rating })
+            });
+        }
+
+        async function getMovieComments(movieId) {
+            return await apiCall(`/movies/${movieId}/comments`);
+        }
+
+        async function addComment(movieId, content, parentCommentId = null) {
+            return await apiCall(`/movies/${movieId}/comments`, {
+                method: 'POST',
+                body: JSON.stringify({ content, parentCommentId })
+            });
+        }
+
+        async function addReaction(movieId, commentId, reactionType) {
+            return await apiCall(`/movies/${movieId}/comments/${commentId}/reactions`, {
+                method: 'POST',
+                body: JSON.stringify({ reactionType })
+            });
+        }
+
+        async function removeReaction(movieId, commentId) {
+            return await apiCall(`/movies/${movieId}/comments/${commentId}/reactions`, {
+                method: 'DELETE'
+            });
+        }
+
+        // User Functions
+        async function getUsers(page = 1, searchTerm = '') {
+            const params = new URLSearchParams({ page, pageSize: 20 });
+            if (searchTerm) params.append('searchTerm', searchTerm);
+            return await apiCall(`/users?${params}`);
+        }
+
+        async function getUserProfile(userId) {
+            return await apiCall(`/users/${userId}`);
+        }
+
+        async function followUser(userId) {
+            return await apiCall(`/users/${userId}/follow`, {
+                method: 'POST'
+            });
+        }
+
+        async function unfollowUser(userId) {
+            return await apiCall(`/users/${userId}/follow`, {
+                method: 'DELETE'
+            });
+        }
+
+        async function blockUser(userId) {
+            return await apiCall(`/users/${userId}/block`, {
+                method: 'POST'
+            });
+        }
+
+        async function unblockUser(userId) {
+            return await apiCall(`/users/${userId}/block`, {
+                method: 'DELETE'
+            });
+        }
+
+        // Movie List Functions
+        async function getMyMovieLists() {
+            return await apiCall('/movie-lists/my-lists');
+        }
+
+        async function getPublicMovieLists(page = 1) {
+            return await apiCall(`/movie-lists/public?page=${page}&pageSize=20`);
+        }
+
+        async function getMovieListDetail(listId) {
+            return await apiCall(`/movie-lists/${listId}`);
+        }
+
+        async function createMovieList(name, description, isPublic) {
+            return await apiCall('/movie-lists', {
+                method: 'POST',
+                body: JSON.stringify({ name, description, isPublic })
+            });
+        }
+
+        async function updateMovieList(listId, name, description, isPublic) {
+            return await apiCall(`/movie-lists/${listId}`, {
+                method: 'PUT',
+                body: JSON.stringify({ name, description, isPublic })
+            });
+        }
+
+        async function deleteMovieList(listId) {
+            return await apiCall(`/movie-lists/${listId}`, {
+                method: 'DELETE'
+            });
+        }
+
+        async function addMovieToList(listId, movieId) {
+            return await apiCall(`/movie-lists/${listId}/movies/${movieId}`, {
+                method: 'POST'
+            });
+        }
+
+        async function removeMovieFromList(listId, movieId) {
+            return await apiCall(`/movie-lists/${listId}/movies/${movieId}`, {
+                method: 'DELETE'
+            });
+        }
+
+        async function favoriteMovieList(listId) {
+            return await apiCall(`/movie-lists/${listId}/favorite`, {
+                method: 'POST'
+            });
+        }
+
+        async function unfavoriteMovieList(listId) {
+            return await apiCall(`/movie-lists/${listId}/favorite`, {
+                method: 'DELETE'
+            });
+        }
+
+        async function getUserMovieLists(userId) {
+            return await apiCall(`/movie-lists/user/${userId}`);
+        }
+
+        // Movie Favorite Functions
+        async function getFavoriteMovies(page = 1) {
+            return await apiCall(`/movies/favorites?page=${page}&pageSize=20`);
+        }
+
+        async function favoriteMovie(movieId) {
+            return await apiCall(`/movies/${movieId}/favorite`, {
+                method: 'POST'
+            });
+        }
+
+        async function unfavoriteMovie(movieId) {
+            return await apiCall(`/movies/${movieId}/favorite`, {
+                method: 'DELETE'
+            });
+        }
+
+        // Search Functions
+        async function searchMovies(query, page = 1) {
+            return await apiCall(`/search/movies?query=${encodeURIComponent(query)}&page=${page}&pageSize=20`);
+        }
+
+        async function searchPeople(query, page = 1) {
+            return await apiCall(`/search/people?query=${encodeURIComponent(query)}&page=${page}&pageSize=20`);
+        }
+
+        async function searchAll(query) {
+            return await apiCall(`/search/all?query=${encodeURIComponent(query)}`);
+        }
+
+        // People Functions
+        async function getPersonDetail(personId) {
+            return await apiCall(`/people/${personId}`);
+        }
+
+        // User Profile Functions
+        async function uploadProfileImage(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`${API_BASE}/users/profile-image`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ message: 'Upload failed' }));
+                throw new Error(error.message || 'Upload failed');
+            }
+
+            return await response.json();
+        }
+
+        async function uploadBackgroundImage(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`${API_BASE}/users/background-image`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ message: 'Upload failed' }));
+                throw new Error(error.message || 'Upload failed');
+            }
+
+            return await response.json();
+        }
+
+        async function getUserProfile(userId) {
+            return await apiCall(`/users/${userId}`);
+        }
+
+        function getImageUrl(imageId) {
+            return imageId ? `${API_BASE}/images/${imageId}` : null;
+        }
+
+        // Render Functions
+        function renderUserInfo() {
+            const userInfoEl = document.getElementById('userInfo');
+            if (currentUser) {
+                userInfoEl.innerHTML = `
+                    <button class="btn btn-secondary" onclick="renderMyProfilePage()">My Profile</button>
+                    <button class="btn btn-secondary" onclick="renderMyMovieListsPage()">My Lists</button>
+                    <button class="btn btn-secondary" onclick="renderFavoriteMoviesPage()">Favorites</button>
+                    <button class="btn btn-secondary" onclick="renderPublicMovieListsPage()">Public Lists</button>
+                    <button class="btn btn-secondary" onclick="renderUsersPage()">Users</button>
+                    <span>Welcome, <strong>${currentUser.username}</strong></span>
+                    <button class="btn btn-danger" onclick="logout()">Logout</button>
+                `;
+            } else {
+                userInfoEl.innerHTML = '';
+            }
+        }
+
+        function renderAuthPage() {
+            return `
+                <div class="auth-container">
+                    <div class="auth-tabs">
+                        <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+                        <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+                    </div>
+
+                    <div id="authMessage"></div>
+
+                    <div id="loginForm">
+                        <div class="form-group">
+                            <label>Username or Email</label>
+                            <input type="text" id="loginUsername" value="testuser">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="loginPassword" value="Password123">
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%;" onclick="handleLogin()">Login</button>
+                    </div>
+
+                    <div id="registerForm" class="hidden">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="registerUsername" value="testuser">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="registerEmail" value="test@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="registerPassword" value="Password123">
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%;" onclick="handleRegister()">Register</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        let currentFilters = {};
+        let genres = [];
+        let filterExpanded = false;
+
+        async function loadGenres() {
+            if (genres.length === 0) {
+                try {
+                    const response = await getGenres();
+                    console.log('Genre API Response:', response);
+                    // Backend'den gelen response.data bir array olmalı
+                    if (response && response.data) {
+                        genres = Array.isArray(response.data) ? response.data : [];
+                    } else if (Array.isArray(response)) {
+                        genres = response;
+                    }
+                    console.log('Loaded genres:', genres);
+                } catch (error) {
+                    console.error('Failed to load genres:', error);
+                }
+            }
+        }
+
+        function renderMoviesPage() {
+            // Abort previous request if any
+            if (activeController) {
+                activeController.abort();
+            }
+            activeController = new AbortController();
+
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="loading">Loading movies and genres...</div>';
+
+            // Load genres first, then movies
+            loadGenres().then(() => {
+                console.log('Genres loaded, count:', genres.length);
+
+                // Load movies with current filters
+                const moviePromise = Object.keys(currentFilters).length > 0
+                    ? getFilteredMovies(currentFilters)
+                    : getMovies();
+
+                moviePromise
+                    .then(data => {
+                        const movies = data.data || [];
+                        console.log('Rendering with genres:', genres);
+                        app.innerHTML = `
+                            <h2 style="margin-bottom: 20px;">Movies</h2>
+
+                            <!-- Filter Section -->
+                            <div class="filter-section">
+                                <button class="filter-toggle-btn" onclick="toggleFilters()">
+                                    <span>🔍 Filters</span>
+                                    <span id="filterToggleIcon">${filterExpanded ? '▲' : '▼'}</span>
+                                </button>
+                                <div id="filterContent" class="${filterExpanded ? '' : 'hidden'}">
+                                    <div class="filter-content">
+                                        <div class="filter-group">
+                                            <label>Search</label>
+                                            <input type="text" id="filterSearch" placeholder="Search title..." value="${currentFilters.search || ''}">
+                                        </div>
+
+                                        <div class="filter-group">
+                                            <label>Genre</label>
+                                            <select id="filterGenre">
+                                                <option value="">All Genres</option>
+                                                ${genres.map(genre => `
+                                                    <option value="${genre.id}" ${currentFilters.genreId == genre.id ? 'selected' : ''}>
+                                                        ${genre.name}
+                                                    </option>
+                                                `).join('')}
+                                            </select>
+                                        </div>
+
+                                        <div class="filter-group">
+                                            <label>Decade</label>
+                                            <select id="filterDecade">
+                                                <option value="">All Decades</option>
+                                                <option value="2020s" ${currentFilters.decade === '2020s' ? 'selected' : ''}>2020s</option>
+                                                <option value="2010s" ${currentFilters.decade === '2010s' ? 'selected' : ''}>2010s</option>
+                                                <option value="2000s" ${currentFilters.decade === '2000s' ? 'selected' : ''}>2000s</option>
+                                                <option value="1990s" ${currentFilters.decade === '1990s' ? 'selected' : ''}>1990s</option>
+                                                <option value="1980s" ${currentFilters.decade === '1980s' ? 'selected' : ''}>1980s</option>
+                                                <option value="1970s" ${currentFilters.decade === '1970s' ? 'selected' : ''}>1970s</option>
+                                                <option value="1960s" ${currentFilters.decade === '1960s' ? 'selected' : ''}>1960s</option>
+                                                <option value="1950s" ${currentFilters.decade === '1950s' ? 'selected' : ''}>1950s</option>
+                                                <option value="1940s" ${currentFilters.decade === '1940s' ? 'selected' : ''}>1940s</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="filter-group">
+                                            <label>Year From</label>
+                                            <input type="number" id="filterYearFrom" placeholder="e.g., 2000" min="1900" max="2030" value="${currentFilters.yearFrom || ''}">
+                                        </div>
+
+                                        <div class="filter-group">
+                                            <label>Year To</label>
+                                            <input type="number" id="filterYearTo" placeholder="e.g., 2024" min="1900" max="2030" value="${currentFilters.yearTo || ''}">
+                                        </div>
+
+                                        <div class="filter-group">
+                                            <label>Min Rating</label>
+                                            <input type="number" id="filterMinRating" placeholder="0.0" min="0" max="10" step="0.1" value="${currentFilters.minRating || ''}">
+                                        </div>
+
+                                        <div class="filter-group">
+                                            <label>Max Rating</label>
+                                            <input type="number" id="filterMaxRating" placeholder="10.0" min="0" max="10" step="0.1" value="${currentFilters.maxRating || ''}">
+                                        </div>
+
+                                        <div class="filter-group">
+                                            <label>Language</label>
+                                            <select id="filterLanguage">
+                                                <option value="">All Languages</option>
+                                                <option value="en" ${currentFilters.language === 'en' ? 'selected' : ''}>English</option>
+                                                <option value="es" ${currentFilters.language === 'es' ? 'selected' : ''}>Spanish</option>
+                                                <option value="fr" ${currentFilters.language === 'fr' ? 'selected' : ''}>French</option>
+                                                <option value="de" ${currentFilters.language === 'de' ? 'selected' : ''}>German</option>
+                                                <option value="it" ${currentFilters.language === 'it' ? 'selected' : ''}>Italian</option>
+                                                <option value="ja" ${currentFilters.language === 'ja' ? 'selected' : ''}>Japanese</option>
+                                                <option value="ko" ${currentFilters.language === 'ko' ? 'selected' : ''}>Korean</option>
+                                                <option value="tr" ${currentFilters.language === 'tr' ? 'selected' : ''}>Turkish</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="filter-group">
+                                            <label>Sort By</label>
+                                            <select id="filterSortBy">
+                                                <option value="Popularity" ${currentFilters.sortBy === 'Popularity' ? 'selected' : ''}>Popularity</option>
+                                                <option value="Rating" ${currentFilters.sortBy === 'Rating' ? 'selected' : ''}>Rating</option>
+                                                <option value="ReleaseDate" ${currentFilters.sortBy === 'ReleaseDate' ? 'selected' : ''}>Release Date</option>
+                                                <option value="Title" ${currentFilters.sortBy === 'Title' ? 'selected' : ''}>Title</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="filter-actions">
+                                            <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                                            <button class="btn btn-secondary" onclick="clearFilters()">Clear All</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            ${movies.length === 0 ? '<p style="color: #9ca3af; text-align: center; padding: 40px;">No movies found. Try adjusting your filters.</p>' : `
+                                <div class="movies-grid">
+                                    ${movies.map(movie => `
+                                        <div class="movie-card" onclick="viewMovieDetail('${movie.id}')">
+                                            <img
+                                                src="${movie.posterPath ? 'https://image.tmdb.org/t/p/w500' + movie.posterPath : 'https://via.placeholder.com/200x300?text=No+Image'}"
+                                                alt="${movie.title}"
+                                                class="movie-poster"
+                                            >
+                                            <div class="movie-info">
+                                                <div class="movie-title">${movie.title}</div>
+                                                <div class="movie-rating">⭐ ${movie.voteAverage?.toFixed(1) || 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `}
+                        `;
+                    })
+                    .catch(error => {
+                        if (error.message !== 'Request was cancelled') {
+                            app.innerHTML = showError('Failed to load movies: ' + error.message);
+                        }
+                    })
+                    .finally(() => {
+                        activeController = null;
+                    });
+            });
+        }
+
+        function toggleFilters() {
+            filterExpanded = !filterExpanded;
+            const content = document.getElementById('filterContent');
+            const icon = document.getElementById('filterToggleIcon');
+
+            content.classList.toggle('hidden');
+            icon.textContent = filterExpanded ? '▲' : '▼';
+        }
+
+        function applyFilters() {
+            currentFilters = {};
+
+            const search = document.getElementById('filterSearch').value.trim();
+            const genreId = document.getElementById('filterGenre').value;
+            const decade = document.getElementById('filterDecade').value;
+            const yearFrom = document.getElementById('filterYearFrom').value;
+            const yearTo = document.getElementById('filterYearTo').value;
+            const minRating = document.getElementById('filterMinRating').value;
+            const maxRating = document.getElementById('filterMaxRating').value;
+            const language = document.getElementById('filterLanguage').value;
+            const sortBy = document.getElementById('filterSortBy').value;
+
+            if (search) currentFilters.search = search;
+            if (genreId) currentFilters.genreId = parseInt(genreId);
+            if (decade) currentFilters.decade = decade;
+            if (yearFrom) currentFilters.yearFrom = parseInt(yearFrom);
+            if (yearTo) currentFilters.yearTo = parseInt(yearTo);
+            if (minRating) currentFilters.minRating = parseFloat(minRating);
+            if (maxRating) currentFilters.maxRating = parseFloat(maxRating);
+            if (language) currentFilters.language = language;
+            if (sortBy) currentFilters.sortBy = sortBy;
+
+            renderMoviesPage();
+        }
+
+        function clearFilters() {
+            currentFilters = {};
+            renderMoviesPage();
+        }
+
+        function renderMovieDetail(movieId) {
+            // Abort previous request if any
+            if (activeController) {
+                activeController.abort();
+            }
+            activeController = new AbortController();
+
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="loading">Loading movie details...</div>';
+
+            Promise.all([
+                getMovieDetail(movieId),
+                getMovieComments(movieId)
+            ])
+                .then(([movieData, commentsData]) => {
+                    const movie = movieData.data;
+                    const comments = commentsData.data || [];
+
+                    app.innerHTML = `
+                        <button class="back-btn" onclick="renderApp()">← Back to Movies</button>
+
+                        <div class="movie-detail">
+                            <img
+                                src="${movie.posterPath ? 'https://image.tmdb.org/t/p/w500' + movie.posterPath : 'https://via.placeholder.com/300x450?text=No+Image'}"
+                                alt="${movie.title}"
+                                class="movie-detail-poster"
+                            >
+                            <div class="movie-detail-info">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <h1>${movie.title}</h1>
+                                    ${currentUser ? `
+                                        <div style="display: flex; gap: 10px;">
+                                            <button class="btn btn-secondary" onclick="handleAddToWatchlist('${movie.id}')" title="Add to Watchlist">👁 Watched</button>
+                                            <button class="btn btn-secondary" id="favoriteBtn-${movie.id}" onclick="handleToggleFavorite('${movie.id}')" title="Favorite this movie">⭐ Favorite</button>
+                                            <button class="btn btn-primary" onclick="openAddToListModal('${movie.id}')" title="Add to a list">✚</button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                <div class="movie-meta">
+                                    <div class="movie-meta-item">⭐ ${movie.voteAverage?.toFixed(1) || 'N/A'}</div>
+                                    <div class="movie-meta-item">📅 ${movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'N/A'}</div>
+                                    <div class="movie-meta-item">⏱️ ${movie.runtime ? movie.runtime + ' min' : 'N/A'}</div>
+                                </div>
+                                <p class="overview">${movie.overview || 'No overview available.'}</p>
+                                <div style="margin-bottom: 10px;"><strong>Genres:</strong> ${movie.genres?.map(g => g.name).join(', ') || 'N/A'}</div>
+
+                                ${movie.cast && movie.cast.length > 0 ? `
+                                    <div style="margin-top: 20px;">
+                                        <h3 style="margin-bottom: 15px;">Cast</h3>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px;">
+                                            ${movie.cast.map(actor => `
+                                                <div style="text-align: center;">
+                                                    <img
+                                                        src="${actor.profilePath ? 'https://image.tmdb.org/t/p/w185' + actor.profilePath : 'https://via.placeholder.com/120x180?text=No+Image'}"
+                                                        alt="${actor.name}"
+                                                        style="width: 100%; border-radius: 8px; margin-bottom: 8px;"
+                                                    >
+                                                    <div style="font-weight: 600; font-size: 14px; color: #1f2937; margin-bottom: 4px;">${actor.name}</div>
+                                                    <div style="font-size: 12px; color: #6b7280;">${actor.character || 'Unknown'}</div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        ${currentUser ? `
+                            <div class="rate-section">
+                                <h3>Rate this movie</h3>
+                                <div id="rateMessage"></div>
+                                <div class="rate-slider">
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="10"
+                                        step="0.5"
+                                        value="8.5"
+                                        id="ratingSlider"
+                                        oninput="document.getElementById('ratingValue').textContent = this.value"
+                                    >
+                                    <span class="rate-value" id="ratingValue">8.5</span>
+                                </div>
+                                <button class="btn btn-success" style="margin-top: 15px;" onclick="submitRating('${movieId}')">Submit Rating</button>
+                            </div>
+                        ` : '<div class="rate-section">Please login to rate this movie.</div>'}
+
+                        <div class="comments-section">
+                            <h3>Comments (${comments.length})</h3>
+
+                            ${currentUser ? `
+                                <div class="comment-form">
+                                    <div id="commentMessage"></div>
+                                    <textarea id="commentInput" placeholder="Write your comment..."></textarea>
+                                    <button class="btn btn-primary" style="margin-top: 10px;" onclick="submitComment('${movieId}')">Post Comment</button>
+                                </div>
+                            ` : '<div class="comment-form">Please login to comment.</div>'}
+
+                            <div id="commentsList">
+                                ${renderComments(comments, movieId)}
+                            </div>
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    if (error.message !== 'Request was cancelled') {
+                        app.innerHTML = `
+                            <button class="back-btn" onclick="renderApp()">← Back to Movies</button>
+                            ${showError('Failed to load movie details: ' + error.message)}
+                        `;
+                    }
+                })
+                .finally(() => {
+                    activeController = null;
+                });
+        }
+
+        function renderComments(comments, movieId, isReply = false) {
+            if (!comments || comments.length === 0) {
+                return '<p style="color: #9ca3af; padding: 20px 0;">No comments yet. Be the first to comment!</p>';
+            }
+
+            return comments.map(comment => `
+                <div class="comment ${isReply ? 'reply' : ''}">
+                    <div class="comment-header">
+                        <span class="comment-author">${comment.username}</span>
+                        <span class="comment-date">${formatDate(comment.createdAt)}</span>
+                    </div>
+                    <div class="comment-content">${comment.content}</div>
+                    ${currentUser ? `
+                        <div class="comment-actions">
+                            <button
+                                class="reaction-btn ${comment.reactions.userReaction === 'Upvote' ? 'active' : ''}"
+                                onclick="handleReaction('${movieId}', '${comment.commentId}', 1, ${comment.reactions.userReaction ? true : false})"
+                            >
+                                👍 ${comment.reactions.upvotes}
+                            </button>
+                            <button
+                                class="reaction-btn ${comment.reactions.userReaction === 'Downvote' ? 'active' : ''}"
+                                onclick="handleReaction('${movieId}', '${comment.commentId}', -1, ${comment.reactions.userReaction ? true : false})"
+                            >
+                                👎 ${comment.reactions.downvotes}
+                            </button>
+                            <button class="btn btn-secondary" style="padding: 5px 12px; font-size: 14px;" onclick="showReplyForm('${comment.commentId}')">Reply</button>
+                        </div>
+                        <div id="replyForm-${comment.commentId}" class="hidden" style="margin-top: 10px;">
+                            <textarea id="replyInput-${comment.commentId}" placeholder="Write your reply..." style="width: 100%; min-height: 60px; padding: 8px; border-radius: 6px; border: 2px solid #e0e7ff;"></textarea>
+                            <button class="btn btn-primary" style="margin-top: 5px; padding: 8px 16px; font-size: 14px;" onclick="submitReply('${movieId}', '${comment.commentId}')">Post Reply</button>
+                        </div>
+                    ` : ''}
+                    ${comment.replies && comment.replies.length > 0 ? renderComments(comment.replies, movieId, true) : ''}
+                </div>
+            `).join('');
+        }
+
+        // Event Handlers
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (tab === 'login') {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+            } else {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+            }
+        }
+
+        async function handleLogin() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const messageEl = document.getElementById('authMessage');
+
+            try {
+                await login(username, password);
+            } catch (error) {
+                messageEl.innerHTML = showError(error.message);
+            }
+        }
+
+        async function handleRegister() {
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const messageEl = document.getElementById('authMessage');
+
+            try {
+                await register(username, email, password);
+            } catch (error) {
+                messageEl.innerHTML = showError(error.message);
+            }
+        }
+
+        function viewMovieDetail(movieId) {
+            renderMovieDetail(movieId);
+        }
+
+        async function submitRating(movieId) {
+            const rating = parseFloat(document.getElementById('ratingSlider').value);
+            const messageEl = document.getElementById('rateMessage');
+
+            try {
+                await rateMovie(movieId, rating);
+                messageEl.innerHTML = showSuccess('Rating submitted successfully!');
+                setTimeout(() => messageEl.innerHTML = '', 3000);
+            } catch (error) {
+                messageEl.innerHTML = showError(error.message);
+            }
+        }
+
+        async function submitComment(movieId) {
+            const content = document.getElementById('commentInput').value.trim();
+            const messageEl = document.getElementById('commentMessage');
+
+            if (!content) {
+                messageEl.innerHTML = showError('Please enter a comment.');
+                return;
+            }
+
+            try {
+                await addComment(movieId, content);
+                messageEl.innerHTML = showSuccess('Comment posted!');
+                document.getElementById('commentInput').value = '';
+                setTimeout(() => renderMovieDetail(movieId), 1000);
+            } catch (error) {
+                messageEl.innerHTML = showError(error.message);
+            }
+        }
+
+        async function submitReply(movieId, parentCommentId) {
+            const content = document.getElementById(`replyInput-${parentCommentId}`).value.trim();
+
+            if (!content) {
+                alert('Please enter a reply.');
+                return;
+            }
+
+            try {
+                await addComment(movieId, content, parentCommentId);
+                renderMovieDetail(movieId);
+            } catch (error) {
+                alert('Failed to post reply: ' + error.message);
+            }
+        }
+
+        function showReplyForm(commentId) {
+            const form = document.getElementById(`replyForm-${commentId}`);
+            form.classList.toggle('hidden');
+        }
+
+        async function handleReaction(movieId, commentId, reactionType, hasReaction) {
+            try {
+                if (hasReaction) {
+                    await removeReaction(movieId, commentId);
+                }
+                await addReaction(movieId, commentId, reactionType);
+                renderMovieDetail(movieId);
+            } catch (error) {
+                alert('Failed to react: ' + error.message);
+            }
+        }
+
+        // Users Page Functions
+        function renderUsersPage() {
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="loading">Loading users...</div>';
+
+            getUsers()
+                .then(data => {
+                    const users = data.data || [];
+                    app.innerHTML = `
+                        <button class="back-btn" onclick="renderMoviesPage()">← Back to Movies</button>
+                        <h2 style="margin-bottom: 20px;">Users</h2>
+                        <input
+                            type="text"
+                            class="search-box"
+                            placeholder="Search users by username or email..."
+                            id="userSearchBox"
+                            oninput="searchUsers()"
+                        >
+                        <div class="users-grid" id="usersGrid">
+                            ${renderUserCards(users)}
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    app.innerHTML = `
+                        <button class="back-btn" onclick="renderMoviesPage()">← Back to Movies</button>
+                        ${showError('Failed to load users: ' + error.message)}
+                    `;
+                });
+        }
+
+        function renderUserCards(users) {
+            if (!users || users.length === 0) {
+                return '<p style="color: #9ca3af; padding: 40px; text-align: center;">No users found.</p>';
+            }
+
+            return users.map(user => `
+                <div class="user-card">
+                    <div class="user-card-header">
+                        <div>
+                            <div class="user-name">${user.username}</div>
+                            <div class="user-email">${user.email}</div>
+                        </div>
+                    </div>
+                    ${user.bio ? `<p style="color: #6b7280; font-size: 14px; margin-bottom: 10px;">${user.bio}</p>` : ''}
+                    <div class="user-stats">
+                        <div class="user-stat">
+                            <div class="user-stat-value">${user.followerCount}</div>
+                            <div class="user-stat-label">Followers</div>
+                        </div>
+                        <div class="user-stat">
+                            <div class="user-stat-value">${user.followingCount}</div>
+                            <div class="user-stat-label">Following</div>
+                        </div>
+                    </div>
+                    <div class="user-actions" style="margin-top: 10px;">
+                        <button class="btn btn-secondary btn-small" onclick="viewUserMovieLists('${user.userId}', '${user.username}')">View Lists</button>
+                    </div>
+                    ${currentUser ? `
+                        <div class="user-actions">
+                            ${user.isBlocked ? `
+                                <button class="btn btn-secondary btn-small" onclick="handleUnblock('${user.userId}')">Unblock</button>
+                            ` : `
+                                ${user.isFollowing ? `
+                                    <button class="btn btn-secondary btn-small" onclick="handleUnfollow('${user.userId}')">Unfollow</button>
+                                ` : `
+                                    <button class="btn btn-primary btn-small" onclick="handleFollow('${user.userId}')">Follow</button>
+                                `}
+                                <button class="btn btn-danger btn-small" onclick="handleBlock('${user.userId}')">Block</button>
+                            `}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        let searchTimeout;
+        function searchUsers() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchTerm = document.getElementById('userSearchBox').value;
+                getUsers(1, searchTerm)
+                    .then(data => {
+                        const usersGrid = document.getElementById('usersGrid');
+                        usersGrid.innerHTML = renderUserCards(data.data || []);
+                    })
+                    .catch(error => {
+                        console.error('Search failed:', error);
+                    });
+            }, 500);
+        }
+
+        async function handleFollow(userId) {
+            try {
+                await followUser(userId);
+                renderUsersPage();
+            } catch (error) {
+                alert('Failed to follow user: ' + error.message);
+            }
+        }
+
+        async function handleUnfollow(userId) {
+            try {
+                await unfollowUser(userId);
+                renderUsersPage();
+            } catch (error) {
+                alert('Failed to unfollow user: ' + error.message);
+            }
+        }
+
+        async function handleBlock(userId) {
+            if (confirm('Are you sure you want to block this user?')) {
+                try {
+                    await blockUser(userId);
+                    renderUsersPage();
+                } catch (error) {
+                    alert('Failed to block user: ' + error.message);
+                }
+            }
+        }
+
+        async function handleUnblock(userId) {
+            try {
+                await unblockUser(userId);
+                renderUsersPage();
+            } catch (error) {
+                alert('Failed to unblock user: ' + error.message);
+            }
+        }
+
+        // My Profile Page
+        function renderMyProfilePage() {
+            if (!currentUser) {
+                renderApp();
+                return;
+            }
+
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="loading">Loading profile...</div>';
+
+            getUserProfile(currentUser.userId)
+                .then(data => {
+                    const profile = data.data;
+                    const profileImageUrl = getImageUrl(profile.profileImageId);
+                    const backgroundImageUrl = getImageUrl(profile.backgroundImageId);
+
+                    app.innerHTML = `
+                        <div class="profile-container">
+                            <button class="back-btn" onclick="renderMoviesPage()">← Back</button>
+
+                            <div class="profile-header">
+                                <div class="profile-background">
+                                    ${backgroundImageUrl ? `<img src="${backgroundImageUrl}" alt="Background">` : ''}
+                                    <div class="profile-background-upload">
+                                        <label for="backgroundImageInput" class="upload-btn">
+                                            📷 Change Cover
+                                        </label>
+                                        <input type="file" id="backgroundImageInput" accept="image/jpeg,image/png" onchange="handleBackgroundImageUpload(event)">
+                                    </div>
+                                </div>
+
+                                <div class="profile-avatar-container">
+                                    <div class="profile-avatar">
+                                        ${profileImageUrl ? `<img src="${profileImageUrl}" alt="Profile">` : profile.username.charAt(0).toUpperCase()}
+                                        <label for="profileImageInput" class="profile-avatar-upload upload-btn upload-btn-small">
+                                            📷
+                                        </label>
+                                        <input type="file" id="profileImageInput" accept="image/jpeg,image/png" onchange="handleProfileImageUpload(event)">
+                                    </div>
+                                    <div class="profile-info">
+                                        <div class="profile-name">${profile.username}</div>
+                                        <div class="profile-email">${profile.email}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="profile-stats">
+                                <div class="stat-item">
+                                    <div class="stat-value">${profile.followerCount}</div>
+                                    <div class="stat-label">Followers</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">${profile.followingCount}</div>
+                                    <div class="stat-label">Following</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value">${new Date(profile.createdAt).toLocaleDateString()}</div>
+                                    <div class="stat-label">Joined</div>
+                                </div>
+                            </div>
+
+                            ${profile.bio ? `
+                                <div class="profile-bio">
+                                    <div class="profile-section-title">Bio</div>
+                                    <p style="color: #6b7280; line-height: 1.6;">${profile.bio}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    app.innerHTML = `
+                        <button class="back-btn" onclick="renderMoviesPage()">← Back</button>
+                        ${showError('Failed to load profile: ' + error.message)}
+                    `;
+                });
+        }
+
+        async function handleProfileImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size exceeds 5MB limit');
+                return;
+            }
+
+            // Validate file type
+            if (!['image/jpeg', 'image/png'].includes(file.type)) {
+                alert('Only JPEG and PNG images are allowed');
+                return;
+            }
+
+            try {
+                const app = document.getElementById('app');
+                const originalContent = app.innerHTML;
+                app.innerHTML = '<div class="loading">Uploading profile image...</div>';
+
+                await uploadProfileImage(file);
+
+                // Refresh profile page
+                renderMyProfilePage();
+            } catch (error) {
+                alert('Failed to upload profile image: ' + error.message);
+                renderMyProfilePage();
+            }
+        }
+
+        async function handleBackgroundImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size exceeds 5MB limit');
+                return;
+            }
+
+            // Validate file type
+            if (!['image/jpeg', 'image/png'].includes(file.type)) {
+                alert('Only JPEG and PNG images are allowed');
+                return;
+            }
+
+            try {
+                const app = document.getElementById('app');
+                const originalContent = app.innerHTML;
+                app.innerHTML = '<div class="loading">Uploading background image...</div>';
+
+                await uploadBackgroundImage(file);
+
+                // Refresh profile page
+                renderMyProfilePage();
+            } catch (error) {
+                alert('Failed to upload background image: ' + error.message);
+                renderMyProfilePage();
+            }
+        }
+
+        function viewUserMovieLists(userId, username) {
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="loading">Loading movie lists...</div>';
+
+            getUserMovieLists(userId)
+                .then(response => {
+                    const lists = response.data || [];
+                    app.innerHTML = `
+                        <button class="back-btn" onclick="renderUsersPage()">← Back to Users</button>
+                        <h2 style="margin-bottom: 20px;">${username}'s Movie Lists</h2>
+                        ${lists.length === 0 ? '<p style="color: #9ca3af;">This user has no public movie lists.</p>' : `
+                            <div class="list-grid">
+                                ${lists.map(list => renderListCard(list, false)).join('')}
+                            </div>
+                        `}
+                    `;
+                })
+                .catch(error => {
+                    app.innerHTML = `
+                        <button class="back-btn" onclick="renderUsersPage()">← Back to Users</button>
+                        ${showError('Failed to load user movie lists: ' + error.message)}
+                    `;
+                });
+        }
+
+        // Movie List Functions
+        function renderMyMovieListsPage() {
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="loading">Loading your movie lists...</div>';
+
+            getMyMovieLists()
+                .then(response => {
+                    const lists = response.data || [];
+                    app.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h2>My Movie Lists</h2>
+                            <button class="btn btn-primary" onclick="openCreateListModal()">Create New List</button>
+                        </div>
+                        <div class="list-grid">
+                            ${lists.map(list => renderListCard(list, true)).join('')}
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    app.innerHTML = showError('Failed to load your movie lists: ' + error.message);
+                });
+        }
+
+        function renderPublicMovieListsPage() {
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="loading">Loading public movie lists...</div>';
+
+            getPublicMovieLists()
+                .then(response => {
+                    const lists = response.data || [];
+                    app.innerHTML = `
+                        <h2 style="margin-bottom: 20px;">Public Movie Lists</h2>
+                        <div class="list-grid">
+                            ${lists.map(list => renderListCard(list, false)).join('')}
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    app.innerHTML = showError('Failed to load public movie lists: ' + error.message);
+                });
+        }
+
+        function renderFavoriteMoviesPage() {
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="loading">Loading your favorite movies...</div>';
+
+            getFavoriteMovies()
+                .then(response => {
+                    const movies = response.data || [];
+                    app.innerHTML = `
+                        <h2 style="margin-bottom: 20px;">My Favorite Movies</h2>
+                        ${movies.length === 0 ? '<p style="color: #9ca3af; text-align: center; padding: 40px;">No favorite movies yet. Start adding some from movie detail pages!</p>' : `
+                        <div class="movies-grid">
+                            ${movies.map(movie => `
+                                <div class="movie-card" onclick="viewMovieDetail('${movie.movieId}')">
+                                    <img
+                                        src="${movie.posterPath ? 'https://image.tmdb.org/t/p/w500' + movie.posterPath : 'https://via.placeholder.com/200x300?text=No+Image'}"
+                                        alt="${movie.title}"
+                                        class="movie-poster"
+                                    >
+                                    <div class="movie-info">
+                                        <div class="movie-title">${movie.title}</div>
+                                        <div class="movie-rating">⭐ ${movie.voteAverage?.toFixed(1) || 'N/A'}</div>
+                                        <div style="font-size: 12px; color: #9ca3af; margin-top: 5px;">Favorited: ${formatDate(movie.favoritedAt)}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        `}
+                    `;
+                })
+                .catch(error => {
+                    app.innerHTML = showError('Failed to load favorite movies: ' + error.message);
+                });
+        }
+
+        function renderListCard(list, isOwner) {
+            const listId = list.movieListId || list.id;
+            return `
+                <div class="list-card">
+                    <div>
+                        <h3 onclick="renderMovieListDetailPage('${listId}')">${list.name}</h3>
+                        <p>${list.description || 'No description.'}</p>
+                    </div>
+                    <div>
+                        <div class="list-meta">
+                            <span>By: ${list.username || 'You'}</span>
+                            <span>${list.movieCount} movies</span>
+                            <span>⭐ ${list.favoriteCount}</span>
+                        </div>
+                        <div class="list-actions">
+                            ${isOwner ? `
+                                ${!list.isWatchlist ? `
+                                    <button class="btn btn-secondary btn-small" onclick="openEditListModal('${listId}', '${escapeQuotes(list.name)}', '${escapeQuotes(list.description || '')}', ${list.isPublic})">Edit</button>
+                                    <button class="btn btn-danger btn-small" onclick="handleDeleteList('${listId}')">Delete</button>
+                                ` : '<span style="color: #9ca3af; font-size: 12px;">Default Watchlist</span>'}
+                            ` : `
+                                <button class="btn btn-primary btn-small" onclick="handleFavoriteToggle('${listId}', ${list.isFavorited})">
+                                    ${list.isFavorited ? 'Unfavorite' : 'Favorite'}
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function escapeQuotes(str) {
+            return str ? str.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
+        }
+
+        function renderMovieListDetailPage(listId) {
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="loading">Loading list details...</div>';
+
+            getMovieListDetail(listId)
+                .then(response => {
+                    const list = response.data;
+                    const isOwner = currentUser && currentUser.userId === list.userId;
+                    app.innerHTML = `
+                        <button class="back-btn" onclick="renderMyMovieListsPage()">← Back to My Lists</button>
+                        <div style="margin-bottom: 20px;">
+                            <h2>${list.name}</h2>
+                            <p style="color: #6b7280;">${list.description || ''}</p>
+                            <div class="list-meta" style="margin-top: 10px;">
+                                <span>By: ${list.userName}</span>
+                                <span>${list.isPublic ? 'Public' : 'Private'}</span>
+                                <span>⭐ ${list.favoriteCount}</span>
+                            </div>
+                        </div>
+
+                        <div class="movies-grid">
+                            ${list.movies.map(movie => `
+                                <div class="movie-card">
+                                    <img
+                                        src="${movie.posterPath ? 'https://image.tmdb.org/t/p/w500' + movie.posterPath : 'https://via.placeholder.com/200x300?text=No+Image'}"
+                                        alt="${movie.title}"
+                                        class="movie-poster"
+                                        onclick="viewMovieDetail('${movie.movieId}')"
+                                    >
+                                    <div class="movie-info">
+                                        <div class="movie-title">${movie.title}</div>
+                                        <div class="movie-rating">⭐ ${movie.voteAverage?.toFixed(1) || 'N/A'}</div>
+                                        ${isOwner ? `<button class="btn btn-danger btn-small" style="margin-top: 10px; width: 100%;" onclick="handleRemoveMovieFromList('${list.movieListId}', '${movie.movieId}')">Remove</button>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    app.innerHTML = showError('Failed to load list details: ' + error.message);
+                });
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        let currentMovieIdToAdd = null;
+        async function openAddToListModal(movieId) {
+            currentMovieIdToAdd = movieId;
+            const modalBody = document.getElementById('addToListModalBody');
+            modalBody.innerHTML = '<div class="loading">Loading your lists...</div>';
+            openModal('addToListModal');
+
+            try {
+                const response = await getMyMovieLists();
+                const lists = response.data || [];
+                if (lists.length === 0) {
+                    modalBody.innerHTML = '<p>You have no movie lists yet. Create one!</p>';
+                } else {
+                    modalBody.innerHTML = lists.map(list => `
+                        <div class="add-to-list-item" onclick="handleAddToList('${list.movieListId}')">
+                            <strong>${list.name}</strong> (${list.movieCount} movies)
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                modalBody.innerHTML = showError('Failed to load lists.');
+            }
+        }
+
+        function openCreateListModal() {
+            // Reset form for creating a new list
+            const modalTitle = document.querySelector('#createListModal h2');
+            const createButton = document.querySelector('#createListModal button');
+            modalTitle.textContent = 'Create New Movie List';
+            createButton.textContent = 'Create List';
+            createButton.onclick = handleCreateList;
+
+            document.getElementById('newListName').value = '';
+            document.getElementById('newListDescription').value = '';
+            document.getElementById('newListIsPublic').checked = true;
+            document.getElementById('createListMessage').innerHTML = '';
+            openModal('createListModal');
+        }
+
+        let editingListId = null;
+        function openEditListModal(listId, name, description, isPublic) {
+            editingListId = listId;
+            
+            // Pre-fill form for editing
+            const modalTitle = document.querySelector('#createListModal h2');
+            const createButton = document.querySelector('#createListModal button');
+            modalTitle.textContent = 'Edit Movie List';
+            createButton.textContent = 'Save Changes';
+            createButton.onclick = handleUpdateList;
+
+            document.getElementById('newListName').value = name;
+            document.getElementById('newListDescription').value = description;
+            document.getElementById('newListIsPublic').checked = isPublic;
+            document.getElementById('createListMessage').innerHTML = '';
+            openModal('createListModal');
+        }
+
+        function openCreateListModalFromAdd() {
+            closeModal('addToListModal');
+            openCreateListModal();
+        }
+
+        async function handleCreateList() {
+            const name = document.getElementById('newListName').value;
+            const description = document.getElementById('newListDescription').value;
+            const isPublic = document.getElementById('newListIsPublic').checked;
+            const messageEl = document.getElementById('createListMessage');
+
+            if (!name) {
+                messageEl.innerHTML = showError('List name is required.');
+                return;
+            }
+
+            try {
+                await createMovieList(name, description, isPublic);
+                messageEl.innerHTML = showSuccess('List created successfully!');
+                setTimeout(() => {
+                    closeModal('createListModal');
+                    renderMyMovieListsPage();
+                }, 1000);
+            } catch (error) {
+                messageEl.innerHTML = showError('Failed to create list: ' + error.message);
+            }
+        }
+
+        async function handleUpdateList() {
+            const name = document.getElementById('newListName').value;
+            const description = document.getElementById('newListDescription').value;
+            const isPublic = document.getElementById('newListIsPublic').checked;
+            const messageEl = document.getElementById('createListMessage');
+
+            if (!name) {
+                messageEl.innerHTML = showError('List name is required.');
+                return;
+            }
+
+            try {
+                await updateMovieList(editingListId, name, description, isPublic);
+                messageEl.innerHTML = showSuccess('List updated successfully!');
+                setTimeout(() => {
+                    closeModal('createListModal');
+                    renderMyMovieListsPage();
+                }, 1000);
+            } catch (error) {
+                messageEl.innerHTML = showError('Failed to update list: ' + error.message);
+            }
+        }
+
+        async function handleAddToList(listId) {
+            const messageEl = document.getElementById('addToListMessage');
+            try {
+                await addMovieToList(listId, currentMovieIdToAdd);
+                messageEl.innerHTML = showSuccess('Movie added to list!');
+                setTimeout(() => {
+                    closeModal('addToListModal');
+                    messageEl.innerHTML = '';
+                }, 1500);
+            } catch (error) {
+                messageEl.innerHTML = showError('Failed to add movie: ' + error.message);
+            }
+        }
+
+        async function handleDeleteList(listId) {
+            if (confirm('Are you sure you want to delete this list? This cannot be undone.')) {
+                try {
+                    await deleteMovieList(listId);
+                    renderMyMovieListsPage();
+                } catch (error) {
+                    alert('Failed to delete list: ' + error.message);
+                }
+            }
+        }
+
+        async function handleRemoveMovieFromList(listId, movieId) {
+            if (confirm('Are you sure you want to remove this movie from the list?')) {
+                try {
+                    await removeMovieFromList(listId, movieId);
+                    renderMovieListDetailPage(listId);
+                } catch (error) {
+                    alert('Failed to remove movie: ' + error.message);
+                }
+            }
+        }
+
+        async function handleFavoriteToggle(listId, isFavorited) {
+            try {
+                if (isFavorited) {
+                    await unfavoriteMovieList(listId);
+                } else {
+                    await favoriteMovieList(listId);
+                }
+                renderPublicMovieListsPage();
+            } catch (error) {
+                alert('Action failed: ' + error.message);
+            }
+        }
+
+        async function handleAddToWatchlist(movieId) {
+            try {
+                const listsData = await getMyMovieLists();
+                const watchlist = listsData.data.find(list => list.isWatchlist);
+
+                if (!watchlist) {
+                    alert('Watchlist not found. Please try again.');
+                    return;
+                }
+
+                await addMovieToList(watchlist.movieListId, movieId);
+                alert('Movie added to your watchlist!');
+            } catch (error) {
+                alert('Failed to add to watchlist: ' + error.message);
+            }
+        }
+
+        async function handleToggleFavorite(movieId) {
+            try {
+                const btn = document.getElementById(`favoriteBtn-${movieId}`);
+                const isFavorited = btn.textContent.includes('Unfavorite');
+
+                if (isFavorited) {
+                    await unfavoriteMovie(movieId);
+                    btn.textContent = '⭐ Favorite';
+                    btn.title = 'Favorite this movie';
+                } else {
+                    await favoriteMovie(movieId);
+                    btn.textContent = '⭐ Unfavorite';
+                    btn.title = 'Remove from favorites';
+                }
+            } catch (error) {
+                alert('Failed to update favorite: ' + error.message);
+            }
+        }
+
+        async function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            const searchType = document.getElementById('searchType').value;
+
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="loading">Searching...</div>';
+
+            try {
+                if (searchType === 'movies') {
+                    const response = await searchMovies(query);
+                    renderMovieSearchResults(response.data || []);
+                } else if (searchType === 'people') {
+                    const response = await searchPeople(query);
+                    renderPeopleSearchResults(response.data || []);
+                } else {
+                    const response = await searchAll(query);
+                    renderMixedSearchResults(response.data);
+                }
+            } catch (error) {
+                app.innerHTML = showError('Search failed: ' + error.message);
+            }
+        }
+
+        function renderMovieSearchResults(movies) {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <h2 style="margin-bottom: 20px;">Movie Search Results</h2>
+                ${movies.length === 0 ? '<p style="color: #9ca3af; text-align: center; padding: 40px;">No movies found.</p>' : `
+                <div class="search-results">
+                    ${movies.map(movie => `
+                        <div class="search-result-item" onclick="viewMovieDetail('${movie.id}')">
+                            <img src="${movie.posterPath ? 'https://image.tmdb.org/t/p/w185' + movie.posterPath : 'https://via.placeholder.com/60x90?text=No+Image'}"
+                                 alt="${movie.title}" class="search-result-image">
+                            <div class="search-result-info">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                    <h3 style="margin: 0;">${movie.title}</h3>
+                                    <span class="search-result-badge">Movie</span>
+                                </div>
+                                <div style="color: #6b7280; font-size: 14px;">
+                                    ${movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'N/A'} • ⭐ ${movie.voteAverage?.toFixed(1) || 'N/A'}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                `}
+            `;
+        }
+
+        function renderPeopleSearchResults(people) {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <h2 style="margin-bottom: 20px;">People Search Results</h2>
+                ${people.length === 0 ? '<p style="color: #9ca3af; text-align: center; padding: 40px;">No people found.</p>' : `
+                <div class="search-results">
+                    ${people.map(person => `
+                        <div class="search-result-item" onclick="renderPersonDetail('${person.id}')">
+                            <img src="${person.profilePath ? 'https://image.tmdb.org/t/p/w185' + person.profilePath : 'https://via.placeholder.com/60x60?text=No+Image'}"
+                                 alt="${person.name}" class="search-result-person-image">
+                            <div class="search-result-info">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                    <h3 style="margin: 0;">${person.name}</h3>
+                                    <span class="search-result-badge">Person</span>
+                                </div>
+                                <div style="color: #6b7280; font-size: 14px;">
+                                    ${person.knownForDepartment || 'Unknown'} • ${person.movieCount || 0} movies
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                `}
+            `;
+        }
+
+        function renderMixedSearchResults(data) {
+            const app = document.getElementById('app');
+            const movies = data.movies || [];
+            const people = data.people || [];
+
+            app.innerHTML = `
+                <h2 style="margin-bottom: 20px;">Search Results</h2>
+                ${movies.length === 0 && people.length === 0 ? '<p style="color: #9ca3af; text-align: center; padding: 40px;">No results found.</p>' : `
+                <div class="search-results">
+                    ${movies.map(movie => `
+                        <div class="search-result-item" onclick="viewMovieDetail('${movie.id}')">
+                            <img src="${movie.posterPath ? 'https://image.tmdb.org/t/p/w185' + movie.posterPath : 'https://via.placeholder.com/60x90?text=No+Image'}"
+                                 alt="${movie.title}" class="search-result-image">
+                            <div class="search-result-info">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                    <h3 style="margin: 0;">${movie.title}</h3>
+                                    <span class="search-result-badge">Movie</span>
+                                </div>
+                                <div style="color: #6b7280; font-size: 14px;">
+                                    ${movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'N/A'} • ⭐ ${movie.voteAverage?.toFixed(1) || 'N/A'}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                    ${people.map(person => `
+                        <div class="search-result-item" onclick="renderPersonDetail('${person.id}')">
+                            <img src="${person.profilePath ? 'https://image.tmdb.org/t/p/w185' + person.profilePath : 'https://via.placeholder.com/60x60?text=No+Image'}"
+                                 alt="${person.name}" class="search-result-person-image">
+                            <div class="search-result-info">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                                    <h3 style="margin: 0;">${person.name}</h3>
+                                    <span class="search-result-badge">Person</span>
+                                </div>
+                                <div style="color: #6b7280; font-size: 14px;">
+                                    ${person.knownForDepartment || 'Unknown'} • Popularity: ${person.popularity?.toFixed(1) || 'N/A'}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                `}
+            `;
+        }
+
+        function renderPersonDetail(personId) {
+            const app = document.getElementById('app');
+            app.innerHTML = '<div class="loading">Loading person details...</div>';
+
+            getPersonDetail(personId)
+                .then(response => {
+                    const person = response.data;
+                    const castCredits = person.castCredits || [];
+                    const crewCredits = person.crewCredits || [];
+                    const allCredits = castCredits.length + crewCredits.length;
+
+                    app.innerHTML = `
+                        <button class="back-btn" onclick="renderApp()">← Back</button>
+
+                        <div style="display: flex; gap: 30px; margin-bottom: 30px;">
+                            <img
+                                src="${person.profilePath ? 'https://image.tmdb.org/t/p/w500' + person.profilePath : 'https://via.placeholder.com/300x450?text=No+Image'}"
+                                alt="${person.name}"
+                                style="width: 300px; height: 450px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+                            >
+                            <div style="flex: 1;">
+                                <h1 style="margin-bottom: 15px;">${person.name}</h1>
+
+                                ${person.knownForDepartment ? `
+                                    <div style="margin-bottom: 10px;">
+                                        <strong>Known For:</strong> ${person.knownForDepartment}
+                                    </div>
+                                ` : ''}
+
+                                ${person.birthday ? `
+                                    <div style="margin-bottom: 10px;">
+                                        <strong>Birthday:</strong> ${new Date(person.birthday).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                        ${person.deathday ? ` - ${new Date(person.deathday).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}` : ''}
+                                    </div>
+                                ` : ''}
+
+                                ${person.placeOfBirth ? `
+                                    <div style="margin-bottom: 10px;">
+                                        <strong>Place of Birth:</strong> ${person.placeOfBirth}
+                                    </div>
+                                ` : ''}
+
+                                <div style="margin-bottom: 10px;">
+                                    <strong>Total Credits:</strong> ${allCredits} movies
+                                </div>
+
+                                ${person.biography ? `
+                                    <div style="margin-top: 20px;">
+                                        <h3 style="margin-bottom: 10px;">Biography</h3>
+                                        <p style="line-height: 1.6; color: #4b5563;">${person.biography}</p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        ${castCredits.length > 0 ? `
+                            <div style="margin-bottom: 40px;">
+                                <h2 style="margin-bottom: 20px;">Acting (${castCredits.length})</h2>
+                                <div class="movies-grid">
+                                    ${castCredits.map(credit => `
+                                        <div class="movie-card" onclick="viewMovieDetail('${credit.movieId}')">
+                                            <img
+                                                src="${credit.posterPath ? 'https://image.tmdb.org/t/p/w500' + credit.posterPath : 'https://via.placeholder.com/200x300?text=No+Image'}"
+                                                alt="${credit.title}"
+                                                class="movie-poster"
+                                            >
+                                            <div class="movie-info">
+                                                <div class="movie-title">${credit.title}</div>
+                                                ${credit.character ? `<div style="font-size: 12px; color: #9ca3af; margin-top: 5px;">as ${credit.character}</div>` : ''}
+                                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                                                    <div class="movie-rating">⭐ ${credit.voteAverage?.toFixed(1) || 'N/A'}</div>
+                                                    <div style="font-size: 12px; color: #9ca3af;">${credit.releaseDate ? new Date(credit.releaseDate).getFullYear() : 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${crewCredits.length > 0 ? `
+                            <div style="margin-bottom: 40px;">
+                                <h2 style="margin-bottom: 20px;">Crew (${crewCredits.length})</h2>
+                                <div class="movies-grid">
+                                    ${crewCredits.map(credit => `
+                                        <div class="movie-card" onclick="viewMovieDetail('${credit.movieId}')">
+                                            <img
+                                                src="${credit.posterPath ? 'https://image.tmdb.org/t/p/w500' + credit.posterPath : 'https://via.placeholder.com/200x300?text=No+Image'}"
+                                                alt="${credit.title}"
+                                                class="movie-poster"
+                                            >
+                                            <div class="movie-info">
+                                                <div class="movie-title">${credit.title}</div>
+                                                ${credit.job ? `<div style="font-size: 12px; color: #9ca3af; margin-top: 5px;">${credit.job}</div>` : ''}
+                                                ${credit.department ? `<div style="font-size: 11px; color: #9ca3af;">${credit.department}</div>` : ''}
+                                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                                                    <div class="movie-rating">⭐ ${credit.voteAverage?.toFixed(1) || 'N/A'}</div>
+                                                    <div style="font-size: 12px; color: #9ca3af;">${credit.releaseDate ? new Date(credit.releaseDate).getFullYear() : 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${castCredits.length === 0 && crewCredits.length === 0 ? `
+                            <p style="color: #9ca3af; text-align: center; padding: 40px;">No movie credits found for this person.</p>
+                        ` : ''}
+                    `;
+                })
+                .catch(error => {
+                    app.innerHTML = `
+                        <button class="back-btn" onclick="renderApp()">← Back</button>
+                        ${showError('Failed to load person details: ' + error.message)}
+                    `;
+                });
+        }
+
+        // Main Render
+        function renderApp() {
+            renderUserInfo();
+            const app = document.getElementById('app');
+
+            if (!currentUser) {
+                app.innerHTML = renderAuthPage();
+            } else {
+                renderMoviesPage();
+            }
+        }
+
+        // Initialize
+        renderApp();
+    </script>
+</body>
+</html>

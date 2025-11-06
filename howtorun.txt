@@ -1,0 +1,13 @@
+
+postgre db çalıştır : 
+migrate ettir.
+
+
+
+
+
+
+
+
+cd infrastructure
+docker-compose -f docker-compose.simple.yml up -d --build

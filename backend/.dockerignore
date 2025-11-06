@@ -1,0 +1,51 @@
+# Build output
+**/bin/
+**/obj/
+**/out/
+**/publish/
+
+# IDE folders
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.sln.docstates
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker files
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+
+# Documentation
+*.md
+README*
+LICENSE*
+
+# Logs
+logs/
+*.log
+
+# Environment files (handled separately)
+.env
+.env.*
+
+# Test results
+TestResults/
+**/TestResults/
+*.trx
+
+# NuGet
+packages/
+*.nupkg
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
