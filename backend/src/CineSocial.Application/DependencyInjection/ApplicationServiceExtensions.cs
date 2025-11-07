@@ -10,8 +10,9 @@ public static class ApplicationServiceExtensions
     {
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ApplicationServiceExtensions).Assembly));
 
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PerformanceBehavior<,>));
+        // Add TelemetryBehavior for comprehensive observability (tracing + metrics)
+        // This replaces the old LoggingBehavior and PerformanceBehavior
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TelemetryBehavior<,>));
 
         return services;
     }

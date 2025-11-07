@@ -1,47 +1,65 @@
 using System.Text;
+using CineSocial.Api.HealthChecks;
 using CineSocial.Api.Middleware;
+using CineSocial.Api.Telemetry;
 using CineSocial.Application.DependencyInjection;
 using CineSocial.Infrastructure.DependencyInjection;
-using DotNetEnv;
-using Elastic.Apm.NetCoreAll;
+using CineSocial.Infrastructure.Data;
+using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using Serilog.Enrichers.Span;
+using Serilog.Sinks.OpenTelemetry;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load .env file from infrastructure folder
-// Try multiple paths to find infrastructure/.env file
-var possiblePaths = new[]
+// Load .env file
+var envPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "infrastructure", ".env");
+if (File.Exists(envPath))
 {
-    System.IO.Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..", "infrastructure", ".env"),  // From bin/Debug/net9.0
-    System.IO.Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "infrastructure", ".env"),        // From src/CineSocial.Api
-    System.IO.Path.Combine(Directory.GetCurrentDirectory(), "infrastructure", ".env"),                          // From backend root
-    System.IO.Path.Combine(Directory.GetCurrentDirectory(), "..", "infrastructure", ".env"),                    // From backend/src
-    System.IO.Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "infrastructure", ".env")    // From published app
-};
-
-foreach (var envPath in possiblePaths)
+    LoadEnvFile(envPath);
+    Console.WriteLine($"[ENV] Loaded .env from: {envPath}");
+}
+else
 {
-    var fullPath = System.IO.Path.GetFullPath(envPath);
-    if (File.Exists(fullPath))
-    {
-        Env.Load(fullPath);
-        Log.Information("Loaded .env file from: {Path}", fullPath);
-        break;
-    }
+    Console.WriteLine($"[ENV] .env not found at: {envPath}");
 }
 
 // Add configuration from environment variables
 builder.Configuration.AddEnvironmentVariables();
 
-// Configure Serilog
+// Configure Serilog with OpenTelemetry integration
 builder.Host.UseSerilog((context, configuration) =>
 {
-    configuration.ReadFrom.Configuration(context.Configuration);
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .Enrich.FromLogContext()
+        .Enrich.WithMachineName()
+        .Enrich.WithThreadId()
+        .Enrich.WithSpan() // Correlate logs with traces
+        .WriteTo.Console(
+            outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j} {TraceId} {SpanId}{NewLine}{Exception}")
+        .WriteTo.File(
+            path: "logs/cinesocial-.log",
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 30,
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} {Properties:j} {TraceId} {SpanId}{NewLine}{Exception}")
+        .WriteTo.OpenTelemetry(options =>
+        {
+            options.Endpoint = context.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? "http://localhost:4317";
+            options.Protocol = OtlpProtocol.Grpc;
+            options.ResourceAttributes = new Dictionary<string, object>
+            {
+                ["service.name"] = ActivitySources.ServiceName,
+                ["service.version"] = ActivitySources.ServiceVersion
+            };
+        });
 });
 
 // Add Application & Infrastructure services
@@ -51,32 +69,91 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 // Add HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 
-// Configure OpenTelemetry with Jaeger
-var jaegerEndpoint = builder.Configuration["JAEGER_OTLP_ENDPOINT"] ?? "http://localhost:4317";
-Log.Information("Jaeger OTLP Endpoint: {JaegerEndpoint}", jaegerEndpoint);
+// Configure OpenTelemetry with comprehensive observability
+var otelEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"] ?? "http://localhost:4317";
+Log.Information("OpenTelemetry OTLP Endpoint: {OtelEndpoint}", otelEndpoint);
+
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource
         .AddService(
-            serviceName: builder.Configuration["ELASTIC_APM_SERVICE_NAME"] ?? "CineSocial.Api",
-            serviceVersion: "1.0.0",
-            serviceInstanceId: Environment.MachineName))
+            serviceName: ActivitySources.ServiceName,
+            serviceVersion: ActivitySources.ServiceVersion,
+            serviceInstanceId: Environment.MachineName)
+        .AddAttributes(new Dictionary<string, object>
+        {
+            ["deployment.environment"] = builder.Environment.EnvironmentName,
+            ["host.name"] = Environment.MachineName
+        }))
+    // Configure Tracing
     .WithTracing(tracing => tracing
+        .AddSource(ActivitySources.ServiceName)
+        .AddSource("CineSocial.Application")
+        .AddSource("CineSocial.Infrastructure")
         .AddAspNetCoreInstrumentation(options =>
         {
             options.RecordException = true;
             options.Filter = (httpContext) => !httpContext.Request.Path.Value?.Contains("/swagger") ?? true;
+            options.EnrichWithHttpRequest = (activity, request) =>
+            {
+                activity.SetTag("http.client_ip", request.HttpContext.Connection.RemoteIpAddress?.ToString());
+                activity.SetTag("http.user_agent", request.Headers.UserAgent.ToString());
+            };
+            options.EnrichWithHttpResponse = (activity, response) =>
+            {
+                activity.SetTag("http.response_content_length", response.ContentLength);
+            };
         })
         .AddHttpClientInstrumentation(options =>
         {
             options.RecordException = true;
+            options.EnrichWithHttpRequestMessage = (activity, request) =>
+            {
+                activity.SetTag("http.request.method", request.Method.ToString());
+            };
         })
-        .AddEntityFrameworkCoreInstrumentation()
+        .AddEntityFrameworkCoreInstrumentation(options =>
+        {
+            options.SetDbStatementForText = true;
+            options.EnrichWithIDbCommand = (activity, command) =>
+            {
+                activity.SetTag("db.command_timeout", command.CommandTimeout);
+            };
+        })
         .AddOtlpExporter(options =>
         {
-            options.Endpoint = new Uri(jaegerEndpoint);
+            options.Endpoint = new Uri(otelEndpoint);
             options.Protocol = OtlpExportProtocol.Grpc;
-        })
-        .AddConsoleExporter());
+        }))
+    // Configure Metrics
+    .WithMetrics(metrics => metrics
+        .AddMeter(Metrics.AppMeter.Name)
+        .AddMeter("CineSocial.Application")
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddProcessInstrumentation()
+        .AddPrometheusExporter()
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri(otelEndpoint);
+            options.Protocol = OtlpExportProtocol.Grpc;
+        }));
+
+// Configure Health Checks
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")
+    ?? BuildConnectionString();
+
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("database", tags: new[] { "db", "ready" })
+    .AddNpgSql(connectionString, name: "postgresql", tags: new[] { "db", "ready" });
+
+// Add Health Checks UI
+builder.Services.AddHealthChecksUI(options =>
+{
+    options.SetEvaluationTimeInSeconds(30); // Check every 30 seconds
+    options.AddHealthCheckEndpoint("CineSocial API", "/health");
+})
+.AddInMemoryStorage();
 
 // Add Controllers for REST API
 builder.Services.AddControllers();
@@ -89,7 +166,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "CineSocial API",
         Version = "v1",
-        Description = "CineSocial REST API"
+        Description = "CineSocial REST API with comprehensive observability"
     });
 
     // Include XML comments
@@ -131,9 +208,10 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // JWT Authentication
-var jwtSecret = builder.Configuration["JWT_SECRET"] ?? throw new InvalidOperationException("JWT_SECRET not configured");
-var jwtIssuer = builder.Configuration["JWT_ISSUER"] ?? "CineSocial";
-var jwtAudience = builder.Configuration["JWT_AUDIENCE"] ?? "CineSocialUsers";
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
+    ?? throw new InvalidOperationException("JWT_SECRET not configured");
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "CineSocial";
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "CineSocialUsers";
 
 builder.Services.AddAuthentication(options =>
 {
@@ -168,7 +246,6 @@ builder.Services.AddCors(options =>
             .AllowCredentials());
 });
 
-
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -185,8 +262,11 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
-// Add Elastic APM middleware (should be early in the pipeline)
-app.UseAllElasticApm(builder.Configuration);
+// Add Correlation ID middleware (must be early in pipeline)
+app.UseCorrelationId();
+
+// Add Prometheus metrics endpoint
+app.MapPrometheusScrapingEndpoint();
 
 // Add Serilog request logging middleware
 app.UseSerilogRequestLogging(options =>
@@ -195,8 +275,9 @@ app.UseSerilogRequestLogging(options =>
     {
         diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
         diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
-        diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"].ToString());
+        diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.ToString());
         diagnosticContext.Set("ClientIP", httpContext.Connection.RemoteIpAddress?.ToString());
+        diagnosticContext.Set("CorrelationId", CorrelationIdAccessor.GetCorrelationId(httpContext));
     };
 });
 
@@ -204,13 +285,44 @@ app.UseGlobalExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
-
 app.MapControllers();
+
+// Health check endpoints
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
+    Predicate = _ => true
+});
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false // No checks, just liveness
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
+    Predicate = check => check.Tags.Contains("ready")
+});
+
+// Health Checks UI
+app.MapHealthChecksUI(options =>
+{
+    options.UIPath = "/health-ui";
+    options.ApiPath = "/health-ui-api";
+});
+
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
 
 try
 {
-    Log.Information("Starting CineSocial API");
+    Log.Information("Starting CineSocial API with OpenTelemetry observability");
+    Log.Information("Service Name: {ServiceName}, Version: {ServiceVersion}",
+        ActivitySources.ServiceName, ActivitySources.ServiceVersion);
+    Log.Information("OTLP Endpoint: {OtelEndpoint}", otelEndpoint);
+    Log.Information("Prometheus Metrics: /metrics");
+    Log.Information("Health Checks: /health, /health/live, /health/ready, /health-ui");
+
     app.Run();
 }
 catch (Exception ex)
@@ -220,6 +332,45 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
+}
+
+// Helper methods
+static void LoadEnvFile(string filePath)
+{
+    foreach (var line in File.ReadAllLines(filePath))
+    {
+        var trimmedLine = line.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedLine) || trimmedLine.StartsWith("#"))
+            continue;
+
+        var parts = trimmedLine.Split('=', 2);
+        if (parts.Length == 2)
+        {
+            Environment.SetEnvironmentVariable(parts[0].Trim(), parts[1].Trim());
+        }
+    }
+}
+
+static string BuildConnectionString()
+{
+    var host = Environment.GetEnvironmentVariable("DATABASE_HOST")
+        ?? throw new InvalidOperationException("DATABASE_HOST not configured");
+
+    var port = Environment.GetEnvironmentVariable("DATABASE_PORT")
+        ?? throw new InvalidOperationException("DATABASE_PORT not configured");
+
+    var database = Environment.GetEnvironmentVariable("DATABASE_NAME")
+        ?? throw new InvalidOperationException("DATABASE_NAME not configured");
+
+    var username = Environment.GetEnvironmentVariable("DATABASE_USER")
+        ?? throw new InvalidOperationException("DATABASE_USER not configured");
+
+    var password = Environment.GetEnvironmentVariable("DATABASE_PASSWORD")
+        ?? throw new InvalidOperationException("DATABASE_PASSWORD not configured");
+
+    var sslMode = Environment.GetEnvironmentVariable("DATABASE_SSL_MODE") ?? "Disable";
+
+    return $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode={sslMode};Trust Server Certificate=true";
 }
 
 // Make the implicit Program class public so test projects can access it

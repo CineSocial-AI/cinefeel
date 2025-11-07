@@ -15,7 +15,9 @@ public static class InfrastructureServiceExtensions
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         // Database
-        var connectionString = BuildConnectionString(configuration);
+        var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")
+            ?? configuration["DATABASE_CONNECTION_STRING"]
+            ?? BuildConnectionString(configuration);
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString));

@@ -1,0 +1,42 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # CineSocial API log files
+  - job_name: cinesocial-api
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: cinesocial-api
+          service: cinesocial-api
+          environment: development
+          __path__: /app/logs/*.log
+    pipeline_stages:
+      - multiline:
+          firstline: '^\d{4}-\d{2}-\d{2}'
+          max_wait_time: 3s
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} [+-]\d{2}:\d{2}) \[(?P<level>\w{3})\] (?P<message>.*)'
+      - labels:
+          level:
+          timestamp:
+      - timestamp:
+          source: timestamp
+          format: '2006-01-02 15:04:05.000 -07:00'
+
+  # System logs (optional)
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          __path__: /var/log/*log
