@@ -1,12 +1,18 @@
 using CineSocial.Application.Common.Interfaces;
 using CineSocial.Application.Services;
+using CineSocial.Infrastructure.Caching;
 using CineSocial.Infrastructure.Data;
 using CineSocial.Infrastructure.Repositories;
 using CineSocial.Infrastructure.Security;
 using CineSocial.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
+using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace CineSocial.Infrastructure.DependencyInjection;
 
@@ -26,6 +32,9 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
 
+        // Caching (Redis + FusionCache)
+        AddCachingServices(services, configuration);
+
         // Repository & UnitOfWork
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -40,6 +49,55 @@ public static class InfrastructureServiceExtensions
         services.AddScoped<IImageService, ImageService>();
 
         return services;
+    }
+
+    private static void AddCachingServices(IServiceCollection services, IConfiguration configuration)
+    {
+        // Get Redis connection string from environment or config
+        var redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING")
+            ?? configuration["REDIS_CONNECTION_STRING"]
+            ?? "localhost:6379";
+
+        // Register Redis connection
+        services.AddSingleton<IConnectionMultiplexer>(sp =>
+        {
+            var config = ConfigurationOptions.Parse(redisConnectionString);
+            config.AbortOnConnectFail = false;
+            config.ConnectTimeout = 5000;
+            config.SyncTimeout = 5000;
+            return ConnectionMultiplexer.Connect(config);
+        });
+
+        // Register distributed cache (Redis L2 cache)
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnectionString;
+            options.InstanceName = "CineSocial:";
+        });
+
+        // Register memory cache (L1 cache)
+        services.AddMemoryCache();
+
+        // Register FusionCache with both L1 (memory) and L2 (Redis)
+        services.AddFusionCache()
+            .WithDefaultEntryOptions(options =>
+            {
+                // Default cache duration
+                options.Duration = TimeSpan.FromMinutes(10);
+
+                // Enable fail-safe mechanism
+                options.IsFailSafeEnabled = true;
+                options.FailSafeMaxDuration = TimeSpan.FromHours(2);
+                options.FailSafeThrottleDuration = TimeSpan.FromSeconds(30);
+
+                // Enable distributed cache (L2 - Redis)
+                options.AllowBackgroundDistributedCacheOperations = true;
+            })
+            .WithSerializer(new FusionCacheSystemTextJsonSerializer())
+            .WithDistributedCache();
+
+        // Register custom cache service
+        services.AddScoped<ICacheService, CacheService>();
     }
 
     private static string BuildConnectionString(IConfiguration configuration)

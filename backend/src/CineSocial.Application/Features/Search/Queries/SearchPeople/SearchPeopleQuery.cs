@@ -1,3 +1,4 @@
+using CineSocial.Application.Common.Interfaces;
 using CineSocial.Application.Common.Results;
 using MediatR;
 
@@ -7,7 +8,18 @@ public record SearchPeopleQuery(
     string Query,
     int Page = 1,
     int PageSize = 20
-) : IRequest<PagedResult<List<PersonSearchResultDto>>>;
+) : IRequest<PagedResult<List<PersonSearchResultDto>>>, ICacheableQuery
+{
+    /// <summary>
+    /// Search results cached for 15 minutes
+    /// </summary>
+    public TimeSpan? CacheDuration => TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// Cache key prefix for invalidation when people are added/updated
+    /// </summary>
+    public string CacheKeyPrefix => "SearchPeople";
+};
 
 public record PersonSearchResultDto
 {

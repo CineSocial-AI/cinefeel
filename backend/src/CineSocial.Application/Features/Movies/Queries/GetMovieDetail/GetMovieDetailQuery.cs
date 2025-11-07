@@ -1,9 +1,18 @@
+using CineSocial.Application.Common.Interfaces;
 using CineSocial.Application.Common.Results;
 using MediatR;
 
 namespace CineSocial.Application.Features.Movies.Queries.GetMovieDetail;
 
-public record GetMovieDetailQuery(Guid Id) : IRequest<Result<MovieDetailDto>>;
+public record GetMovieDetailQuery(Guid Id) : IRequest<Result<MovieDetailDto>>, ICacheableQuery
+{
+    /// <summary>
+    /// Movie details cached for 1 hour (TMDB data rarely changes)
+    /// </summary>
+    public TimeSpan? CacheDuration => TimeSpan.FromHours(1);
+
+    public string CacheKeyPrefix => "GetMovieDetail";
+};
 
 public record MovieDetailDto
 {

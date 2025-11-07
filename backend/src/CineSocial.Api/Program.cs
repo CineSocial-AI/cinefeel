@@ -143,9 +143,14 @@ builder.Services.AddOpenTelemetry()
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")
     ?? BuildConnectionString();
 
+var redisConnectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION_STRING")
+    ?? builder.Configuration["REDIS_CONNECTION_STRING"]
+    ?? "localhost:6379";
+
 builder.Services.AddHealthChecks()
     .AddCheck<DatabaseHealthCheck>("database", tags: new[] { "db", "ready" })
-    .AddNpgSql(connectionString, name: "postgresql", tags: new[] { "db", "ready" });
+    .AddNpgSql(connectionString, name: "postgresql", tags: new[] { "db", "ready" })
+    .AddRedis(redisConnectionString, name: "redis", tags: new[] { "cache", "ready" });
 
 // Add Health Checks UI
 builder.Services.AddHealthChecksUI(options =>

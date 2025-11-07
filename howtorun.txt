@@ -1,13 +1,156 @@
+==============================================
+CineFeel - Nasıl Çalıştırılır
+==============================================
 
-postgre db çalıştır : 
-migrate ettir.
+ADIM 1: Veritabanını Ayağa Kaldır
+----------------------------------
+Konum: cinefeel\infrastructure\
+Komut:
+  docker-compose -f docker-compose.db.yml up -d
+
+Not: PostgreSQL veritabanı localhost:5432 portunda çalışacak
 
 
+ADIM 2: Redis Cache'i Ayağa Kaldır
+-----------------------------------
+Konum: cinefeel\infrastructure\
+Komut:
+  docker-compose -f docker-compose.redis.yml up -d
+
+Not: Redis localhost:6379 portunda çalışacak
+Not: FusionCache için L1 (Memory) + L2 (Redis) hybrid cache kullanılıyor
 
 
+ADIM 3: Backend Migration İşlemleri
+------------------------------------
+Konum: cinefeel\backend\src\CineSocial.Api\
+
+Migration Oluşturma:
+  dotnet ef migrations add <MigrationName> --project ../CineSocial.Infrastructure --startup-project .
+
+Database'i Güncelleme (Migration Uygulama):
+  dotnet ef database update --project ../CineSocial.Infrastructure --startup-project .
+
+Not: .env dosyası infrastructure/.env konumunda olmalı
 
 
+ADIM 4: Backend API'yi Çalıştır
+---------------------------------
+Konum: cinefeel\backend\src\CineSocial.Api\
+Komut:
+  dotnet run
+
+API Adresi: http://localhost:5000
+Swagger UI: http://localhost:5000/swagger
+Health Check: http://localhost:5000/health
+Health UI: http://localhost:5000/health-ui
 
 
+ADIM 5: Film Verilerini Database'e Yükle
+-----------------------------------------
+Konum: cinefeel\scripts\
+Komut:
+  python insert_data_to_db.py
+
+Not: Bu script data/ klasörü içindeki CSV dosyalarından verileri database'e yükler
+
+
+ADIM 6: TMDB'den Ek Verileri Çek
+---------------------------------
+Konum: cinefeel\scripts\
+Komut:
+  python fetch_other_values.py
+
+Not: TMDB API'sine istek atarak filmler için diğer verileri çeker (person, crew vs vs)
+
+
+ADIM 7: Telemetry Toollarını Ayağa Kaldır (Opsiyonel)
+------------------------------------------------------
+Konum: cinefeel\infrastructure\
+Komut:
+  docker-compose -f docker-compose.telemetry.yml up -d
+
+Telemetry araçları:
+  - Prometheus: http://localhost:9090
+  - Grafana: http://localhost:3000
+  - Loki: http://localhost:3100
+
+
+==============================================
+Ortam Değişkenleri
+==============================================
+Konfigürasyon dosyası: cinefeel\infrastructure\.env
+
+Gerekli değişkenler:
+  - DATABASE_HOST
+  - DATABASE_PORT
+  - DATABASE_NAME
+  - DATABASE_USER
+  - DATABASE_PASSWORD
+  - REDIS_CONNECTION_STRING (örn: localhost:6379)
+  - JWT_SECRET
+  - TMDB_ACCESS_TOKEN
+
+
+==============================================
+Cache Yönetimi
+==============================================
+
+Cache Süreleriorama:
+  - Reference Data (Genre, Country, Language): 24 saat
+  - Movies & People: 1 saat
+  - User Data: 15 dakika
+  - Comments & Rates: 5 dakika
+  - Search Results: 15 dakika
+
+Cache Temizleme:
+  - Otomatik: Mutation operasyonları (Add, Update, Delete) cache'i otomatik temizler
+  - Manuel: Redis CLI ile
+    docker exec -it cinesocial-redis redis-cli
+    FLUSHDB  (tüm cache'i temizler)
+    KEYS CineSocial:*  (tüm cache key'lerini listeler)
+
+Cache Monitoring:
+  - Health Check: http://localhost:5000/health (Redis durumunu gösterir)
+  - Redis Stats:
+    docker exec -it cinesocial-redis redis-cli INFO stats
+
+
+==============================================
+Tüm Servisleri Başlatma (Tek Komut)
+==============================================
 cd infrastructure
-docker-compose -f docker-compose.simple.yml up -d --build
+docker-compose -f docker-compose.db.yml -f docker-compose.redis.yml up -d
+
+
+==============================================
+Tüm Servisleri Durdurma
+==============================================
+docker-compose -f docker-compose.db.yml down
+docker-compose -f docker-compose.redis.yml down
+docker-compose -f docker-compose.telemetry.yml down
+
+
+==============================================
+Sorun Giderme
+==============================================
+
+Redis Bağlantı Hatası:
+  1. Redis container'ın çalıştığından emin olun:
+     docker ps | grep redis
+  2. Redis loglarını kontrol edin:
+     docker logs cinesocial-redis
+  3. Redis'e bağlanabildiğinizi test edin:
+     docker exec -it cinesocial-redis redis-cli ping
+     (PONG dönmeli)
+
+Cache Çalışmıyor:
+  1. Health check'i kontrol edin: http://localhost:5000/health
+  2. Backend loglarında "Cache hit" veya "Cache miss" loglarını arayın
+  3. Redis'te key'lerin oluştuğunu kontrol edin:
+     docker exec -it cinesocial-redis redis-cli KEYS "*"
+
+Database Bağlantı Hatası:
+  1. PostgreSQL container'ın çalıştığını kontrol edin
+  2. .env dosyasındaki credentials'ı kontrol edin
+  3. Connection string'i kontrol edin

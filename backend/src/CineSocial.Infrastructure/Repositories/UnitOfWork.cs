@@ -1,8 +1,11 @@
 using CineSocial.Application.Common.Interfaces;
 using CineSocial.Application.Common.Results;
 using CineSocial.Domain.Common;
+using CineSocial.Domain.Entities.Movie;
 using CineSocial.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 
 namespace CineSocial.Infrastructure.Repositories;
 
@@ -13,13 +16,21 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly ApplicationDbContext _context;
     private readonly ICurrentUserService? _currentUserService;
+    private readonly ICacheService? _cacheService;
+    private readonly ILogger<UnitOfWork>? _logger;
     private readonly Dictionary<Type, object> _repositories;
     private IDbContextTransaction? _transaction;
 
-    public UnitOfWork(ApplicationDbContext context, ICurrentUserService? currentUserService = null)
+    public UnitOfWork(
+        ApplicationDbContext context,
+        ICurrentUserService? currentUserService = null,
+        ICacheService? cacheService = null,
+        ILogger<UnitOfWork>? logger = null)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _cacheService = cacheService;
+        _logger = logger;
         _repositories = new Dictionary<Type, object>();
     }
 
@@ -42,21 +53,76 @@ public class UnitOfWork : IUnitOfWork
     }
 
     /// <summary>
-    /// Saves all changes to the database with audit tracking
+    /// Saves all changes to the database with audit tracking and cache invalidation
     /// </summary>
     public async Task<Result<int>> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         try
         {
+            // Track modified entities before save for cache invalidation
+            var modifiedEntities = _context.ChangeTracker.Entries()
+                .Where(e => e.State == EntityState.Added ||
+                           e.State == EntityState.Modified ||
+                           e.State == EntityState.Deleted)
+                .Select(e => e.Entity.GetType())
+                .Distinct()
+                .ToList();
+
             // Apply audit information
             ApplyAuditInformation();
 
             var result = await _context.SaveChangesAsync(cancellationToken);
+
+            // Invalidate cache after successful save
+            if (_cacheService != null && result > 0)
+            {
+                await InvalidateCacheForModifiedEntities(modifiedEntities, cancellationToken);
+            }
+
             return Result.Success(result);
         }
         catch (Exception ex)
         {
             return Result.Failure<int>(Error.Failure("Database.SaveFailed", ex.Message));
+        }
+    }
+
+    /// <summary>
+    /// Invalidates cache for modified entity types
+    /// </summary>
+    private async Task InvalidateCacheForModifiedEntities(List<Type> modifiedEntityTypes, CancellationToken cancellationToken)
+    {
+        try
+        {
+            foreach (var entityType in modifiedEntityTypes)
+            {
+                // Invalidate search cache if movies or people are modified
+                if (entityType == typeof(MovieEntity) || entityType.Name.Contains("Movie"))
+                {
+                    _logger?.LogDebug("Invalidating movie-related cache due to {EntityType} modification", entityType.Name);
+                    await _cacheService!.RemoveByPrefixAsync("query:searchall", cancellationToken);
+                    await _cacheService!.RemoveByPrefixAsync("query:getmoviedetail", cancellationToken);
+                }
+
+                if (entityType == typeof(Person))
+                {
+                    _logger?.LogDebug("Invalidating person-related cache due to Person modification");
+                    await _cacheService!.RemoveByPrefixAsync("query:searchpeople", cancellationToken);
+                    await _cacheService!.RemoveByPrefixAsync("query:searchall", cancellationToken);
+                }
+
+                // Invalidate comment/rate cache
+                if (entityType.Name.Contains("Comment") || entityType.Name.Contains("Rate"))
+                {
+                    _logger?.LogDebug("Invalidating social cache due to {EntityType} modification", entityType.Name);
+                    // These are handled by their specific commands
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error invalidating cache for modified entities");
+            // Don't throw - cache invalidation failure shouldn't break the save operation
         }
     }
 
