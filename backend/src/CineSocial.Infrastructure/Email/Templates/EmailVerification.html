@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Doğrulama - CineSocial</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .content h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .content p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .verify-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        .verify-button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            background-color: #f8f8f8;
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 30px 0;
+        }
+        .info-box {
+            background-color: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-box p {
+            margin: 0;
+            color: #555;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 CineSocial</h1>
+        </div>
+        <div class="content">
+            <h2>Merhaba {{USERNAME}},</h2>
+            <p>CineSocial'e hoş geldin! Hesabını aktifleştirmek için email adresini doğrulaman gerekiyor.</p>
+
+            <div class="button-container">
+                <a href="{{VERIFICATION_URL}}" class="verify-button">Email'imi Doğrula</a>
+            </div>
+
+            <div class="info-box">
+                <p><strong>Not:</strong> Bu link 24 saat boyunca geçerlidir. Eğer bu işlemi sen yapmadıysan, bu emaili görmezden gelebilirsin.</p>
+            </div>
+
+            <div class="divider"></div>
+
+            <p style="font-size: 14px; color: #999;">
+                Eğer butona tıklayamıyorsan, aşağıdaki linki tarayıcına kopyalayabilirsin:<br>
+                <a href="{{VERIFICATION_URL}}" style="color: #667eea; word-break: break-all;">{{VERIFICATION_URL}}</a>
+            </p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2025 CineSocial. Tüm hakları saklıdır.</p>
+            <p>Film ve dizi severler için sosyal platform</p>
+        </div>
+    </div>
+</body>
+</html>

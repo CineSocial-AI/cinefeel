@@ -2,6 +2,7 @@ using CineSocial.Application.Common.Interfaces;
 using CineSocial.Application.Services;
 using CineSocial.Infrastructure.Caching;
 using CineSocial.Infrastructure.Data;
+using CineSocial.Infrastructure.Email;
 using CineSocial.Infrastructure.Repositories;
 using CineSocial.Infrastructure.Security;
 using CineSocial.Infrastructure.Services;
@@ -47,6 +48,9 @@ public static class InfrastructureServiceExtensions
 
         // Image Service
         services.AddScoped<IImageService, ImageService>();
+
+        // Email Service
+        services.AddScoped<IEmailService, EmailService>();
 
         return services;
     }

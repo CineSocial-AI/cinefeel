@@ -1,5 +1,6 @@
 using CineSocial.Application.Features.Auth.Commands.Login;
 using CineSocial.Application.Features.Auth.Commands.Register;
+using CineSocial.Application.Features.Auth.Commands.VerifyEmail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -106,6 +107,48 @@ public class AuthController : ControllerBase
             Success = true,
             Message = "Login successful",
             Data = response
+        });
+    }
+
+    /// <summary>
+    /// Verify email address with token
+    /// </summary>
+    [HttpGet("verify-email")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifyEmail(
+        [FromQuery] string token,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return BadRequest(new ApiResponse<object>
+            {
+                Success = false,
+                Message = "Token parametresi gereklidir",
+                Error = "InvalidToken"
+            });
+        }
+
+        var command = new VerifyEmailCommand(token);
+        var result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return BadRequest(new ApiResponse<object>
+            {
+                Success = false,
+                Message = result.Error.Description,
+                Error = result.Error.Code
+            });
+        }
+
+        return Ok(new ApiResponse<string>
+        {
+            Success = true,
+            Message = result.Value,
+            Data = null
         });
     }
 

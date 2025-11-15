@@ -20,6 +20,11 @@ public class AppUser : BaseAuditableEntity
     public DateTime? LastLoginAt { get; set; }
     public bool IsActive { get; set; } = true;
 
+    // Email verification
+    public bool EmailConfirmed { get; set; } = false;
+    public string? EmailVerificationToken { get; set; }
+    public DateTime? EmailVerificationTokenExpiry { get; set; }
+
     // Navigation properties for Follow relationship
     public ICollection<Follow> Followers { get; set; } = new List<Follow>();
     public ICollection<Follow> Following { get; set; } = new List<Follow>();

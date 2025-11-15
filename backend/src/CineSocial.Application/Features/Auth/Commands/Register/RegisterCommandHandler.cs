@@ -4,6 +4,7 @@ using CineSocial.Application.Common.Security;
 using CineSocial.Domain.Entities.User;
 using CineSocial.Domain.Entities.Social;
 using CineSocial.Domain.Enums;
+using CineSocial.Infrastructure.Email;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,11 +14,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IJwtService _jwtService;
+    private readonly IEmailService _emailService;
 
-    public RegisterCommandHandler(IUnitOfWork unitOfWork, IJwtService jwtService)
+    public RegisterCommandHandler(IUnitOfWork unitOfWork, IJwtService jwtService, IEmailService emailService)
     {
         _unitOfWork = unitOfWork;
         _jwtService = jwtService;
+        _emailService = emailService;
     }
 
     public async Task<Result<AuthResponse>> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -48,6 +51,9 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
             ));
         }
 
+        // Generate email verification token
+        var verificationToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+
         // Create new user
         var user = new AppUser
         {
@@ -57,6 +63,9 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
             PasswordHash = PasswordHasher.HashPassword(request.Password),
             Role = UserRole.User,
             IsActive = true,
+            EmailConfirmed = false,
+            EmailVerificationToken = verificationToken,
+            EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -78,6 +87,19 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
         await _unitOfWork.Repository<MovieList>().AddAsync(watchlist, cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Send email verification
+        try
+        {
+            await _emailService.SendEmailVerificationAsync(user.Email, user.Username, verificationToken, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // Log the error but don't fail the registration
+            // User is already created, we can resend the email later
+            // TODO: Consider using background job for email sending
+            Console.WriteLine($"Failed to send verification email: {ex.Message}");
+        }
 
         // Generate JWT token
         var token = _jwtService.GenerateToken(user);
