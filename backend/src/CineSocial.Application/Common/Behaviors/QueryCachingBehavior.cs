@@ -10,6 +10,7 @@ namespace CineSocial.Application.Common.Behaviors;
 /// </summary>
 public class QueryCachingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
+    where TResponse : class
 {
     private readonly ICacheService _cacheService;
     private readonly ILogger<QueryCachingBehavior<TRequest, TResponse>> _logger;

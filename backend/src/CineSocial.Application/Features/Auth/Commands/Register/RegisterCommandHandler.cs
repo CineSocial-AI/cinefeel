@@ -4,7 +4,6 @@ using CineSocial.Application.Common.Security;
 using CineSocial.Domain.Entities.User;
 using CineSocial.Domain.Entities.Social;
 using CineSocial.Domain.Enums;
-using CineSocial.Infrastructure.Email;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,13 +13,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IJwtService _jwtService;
-    private readonly IEmailService _emailService;
+    private readonly IJobSchedulerService _jobScheduler;
 
-    public RegisterCommandHandler(IUnitOfWork unitOfWork, IJwtService jwtService, IEmailService emailService)
+    public RegisterCommandHandler(IUnitOfWork unitOfWork, IJwtService jwtService, IJobSchedulerService jobScheduler)
     {
         _unitOfWork = unitOfWork;
         _jwtService = jwtService;
-        _emailService = emailService;
+        _jobScheduler = jobScheduler;
     }
 
     public async Task<Result<AuthResponse>> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -88,17 +87,24 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Send email verification
+        // Schedule email verification job (background job via Quartz)
         try
         {
-            await _emailService.SendEmailVerificationAsync(user.Email, user.Username, verificationToken, cancellationToken);
+            var jobId = await _jobScheduler.ScheduleEmailVerificationJobAsync(
+                user.Email,
+                user.Username,
+                verificationToken,
+                cancellationToken
+            );
+
+            // Optional: Log job ID for tracking
+            Console.WriteLine($"Email verification job scheduled with ID: {jobId}");
         }
         catch (Exception ex)
         {
             // Log the error but don't fail the registration
-            // User is already created, we can resend the email later
-            // TODO: Consider using background job for email sending
-            Console.WriteLine($"Failed to send verification email: {ex.Message}");
+            // Job scheduling failed, but user is created
+            Console.WriteLine($"Failed to schedule email verification job: {ex.Message}");
         }
 
         // Generate JWT token

@@ -59,7 +59,7 @@ public class CacheService : ICacheService
                 FailSafeThrottleDuration = TimeSpan.FromSeconds(30)
             };
 
-            return await _fusionCache.GetOrSetAsync(
+            return await _fusionCache.GetOrSetAsync<T>(
                 key,
                 async (ctx, ct) => await factory(ct),
                 options,

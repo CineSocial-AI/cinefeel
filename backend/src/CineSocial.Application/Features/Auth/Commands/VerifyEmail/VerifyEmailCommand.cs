@@ -1,4 +1,4 @@
-using CineSocial.Application.Common.Models;
+using CineSocial.Application.Common.Results;
 using MediatR;
 
 namespace CineSocial.Application.Features.Auth.Commands.VerifyEmail;

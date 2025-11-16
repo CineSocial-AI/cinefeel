@@ -3,6 +3,8 @@ using CineSocial.Application.Services;
 using CineSocial.Infrastructure.Caching;
 using CineSocial.Infrastructure.Data;
 using CineSocial.Infrastructure.Email;
+using CineSocial.Infrastructure.Jobs.Configuration;
+using CineSocial.Infrastructure.Jobs.Services;
 using CineSocial.Infrastructure.Repositories;
 using CineSocial.Infrastructure.Security;
 using CineSocial.Infrastructure.Services;
@@ -11,6 +13,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Quartz;
 using StackExchange.Redis;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
@@ -52,6 +55,17 @@ public static class InfrastructureServiceExtensions
         // Email Service
         services.AddScoped<IEmailService, EmailService>();
 
+        // Job Services
+        services.AddScoped<IJobExecutionHistoryService, JobExecutionHistoryService>();
+        services.AddScoped<IJobSchedulerService, JobSchedulerService>();
+
+        // Quartz Job Scheduling
+        services.AddQuartz(q => q.ConfigureQuartz(configuration));
+        services.AddQuartzHostedService(options =>
+        {
+            options.WaitForJobsToComplete = true;
+        });
+
         return services;
     }
 
@@ -84,6 +98,7 @@ public static class InfrastructureServiceExtensions
 
         // Register FusionCache with both L1 (memory) and L2 (Redis)
         services.AddFusionCache()
+            .TryWithAutoSetup()
             .WithDefaultEntryOptions(options =>
             {
                 // Default cache duration
@@ -97,8 +112,7 @@ public static class InfrastructureServiceExtensions
                 // Enable distributed cache (L2 - Redis)
                 options.AllowBackgroundDistributedCacheOperations = true;
             })
-            .WithSerializer(new FusionCacheSystemTextJsonSerializer())
-            .WithDistributedCache();
+            .WithSerializer(new FusionCacheSystemTextJsonSerializer());
 
         // Register custom cache service
         services.AddScoped<ICacheService, CacheService>();
