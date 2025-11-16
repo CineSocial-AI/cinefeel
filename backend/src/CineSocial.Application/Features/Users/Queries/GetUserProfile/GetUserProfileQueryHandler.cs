@@ -25,6 +25,8 @@ public class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, R
                 .Query()
                 .Include(u => u.Followers)
                 .Include(u => u.Following)
+                .Include(u => u.ProfileImage)
+                .Include(u => u.BackgroundImage)
                 .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
 
             if (user == null)
@@ -56,6 +58,9 @@ public class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, R
                 Bio = user.Bio,
                 ProfileImageId = user.ProfileImageId,
                 BackgroundImageId = user.BackgroundImageId,
+                // Provide direct CloudURLs if available (avoids extra API calls)
+                ProfileImageUrl = user.ProfileImage?.CloudUrl,
+                BackgroundImageUrl = user.BackgroundImage?.CloudUrl,
                 CreatedAt = user.CreatedAt,
                 LastLoginAt = user.LastLoginAt,
                 IsFollowing = isFollowing,

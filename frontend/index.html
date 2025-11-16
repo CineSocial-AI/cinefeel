@@ -1285,7 +1285,13 @@
             return await apiCall(`/users/${userId}`);
         }
 
-        function getImageUrl(imageId) {
+        // Get image URL - prefers direct CloudURL, falls back to API endpoint
+        function getImageUrl(imageId, cloudUrl = null) {
+            // If cloudUrl is provided (from new API), use it directly
+            if (cloudUrl) {
+                return cloudUrl;
+            }
+            // Fallback: use API endpoint (will redirect to cloud or serve from DB)
             return imageId ? `${API_BASE}/images/${imageId}` : null;
         }
 
@@ -1966,8 +1972,9 @@
             getUserProfile(currentUser.userId)
                 .then(data => {
                     const profile = data.data;
-                    const profileImageUrl = getImageUrl(profile.profileImageId);
-                    const backgroundImageUrl = getImageUrl(profile.backgroundImageId);
+                    // Use CloudURL if available (preferred), otherwise fall back to imageId
+                    const profileImageUrl = getImageUrl(profile.profileImageId, profile.profileImageUrl);
+                    const backgroundImageUrl = getImageUrl(profile.backgroundImageId, profile.backgroundImageUrl);
 
                     app.innerHTML = `
                         <div class="profile-container">

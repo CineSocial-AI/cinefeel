@@ -2,6 +2,7 @@ using CineSocial.Application.Common.Interfaces;
 using CineSocial.Application.Common.Results;
 using CineSocial.Application.Services;
 using CineSocial.Domain.Entities.User;
+using CineSocial.Domain.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -10,6 +11,7 @@ namespace CineSocial.Infrastructure.Services;
 public class ImageService : IImageService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICloudStorageProvider _cloudStorageProvider;
     private readonly ILogger<ImageService> _logger;
 
     // Configuration constants
@@ -17,9 +19,13 @@ public class ImageService : IImageService
     private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png" };
     private static readonly string[] AllowedContentTypes = { "image/jpeg", "image/png" };
 
-    public ImageService(IUnitOfWork unitOfWork, ILogger<ImageService> logger)
+    public ImageService(
+        IUnitOfWork unitOfWork,
+        ICloudStorageProvider cloudStorageProvider,
+        ILogger<ImageService> logger)
     {
         _unitOfWork = unitOfWork;
+        _cloudStorageProvider = cloudStorageProvider;
         _logger = logger;
     }
 
@@ -69,28 +75,34 @@ public class ImageService : IImageService
 
         try
         {
-            // Read file data into byte array
-            using var memoryStream = new MemoryStream();
-            await file.CopyToAsync(memoryStream, cancellationToken);
-            var imageData = memoryStream.ToArray();
+            // Upload to Cloudinary
+            var uploadResult = await _cloudStorageProvider.UploadImageAsync(
+                file,
+                folder: "user-images",
+                cancellationToken);
 
-            // Create Image entity
+            // Create Image entity with cloud storage info
             var image = new Image
             {
                 Id = Guid.NewGuid(),
                 FileName = Path.GetFileName(file.FileName),
                 ContentType = file.ContentType,
-                Data = imageData,
+                CloudUrl = uploadResult.Url,
+                CloudPublicId = uploadResult.PublicId,
+                Provider = StorageProvider.Cloudinary,
                 Size = file.Length,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                // Data is null - we don't store in DB anymore
+                Data = null
             };
 
-            // Save to database
+            // Save metadata to database
             await _unitOfWork.Repository<Image>().AddAsync(image, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Image {ImageId} saved successfully. Size: {Size} bytes, FileName: {FileName}",
-                image.Id, image.Size, image.FileName);
+            _logger.LogInformation(
+                "Image {ImageId} saved successfully to Cloudinary. Size: {Size} bytes, FileName: {FileName}, CloudUrl: {CloudUrl}",
+                image.Id, image.Size, image.FileName, image.CloudUrl);
 
             return Result.Success(image);
         }
@@ -130,8 +142,26 @@ public class ImageService : IImageService
                 return Result.Failure(imageResult.Error);
             }
 
-            // Soft delete the image
-            var deleteResult = _unitOfWork.Repository<Image>().Delete(imageResult.Value);
+            var image = imageResult.Value;
+
+            // Delete from cloud storage if stored there
+            if (image.Provider == StorageProvider.Cloudinary && !string.IsNullOrWhiteSpace(image.CloudPublicId))
+            {
+                var cloudDeleteSuccess = await _cloudStorageProvider.DeleteImageAsync(
+                    image.CloudPublicId,
+                    cancellationToken);
+
+                if (!cloudDeleteSuccess)
+                {
+                    _logger.LogWarning(
+                        "Failed to delete image from Cloudinary. ImageId: {ImageId}, PublicId: {PublicId}",
+                        imageId, image.CloudPublicId);
+                    // Continue with DB deletion even if cloud deletion fails
+                }
+            }
+
+            // Soft delete the image from database
+            var deleteResult = _unitOfWork.Repository<Image>().Delete(image);
             if (deleteResult.IsFailure)
             {
                 return deleteResult;

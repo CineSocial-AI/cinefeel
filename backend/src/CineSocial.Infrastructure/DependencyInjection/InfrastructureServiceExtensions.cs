@@ -1,6 +1,7 @@
 using CineSocial.Application.Common.Interfaces;
 using CineSocial.Application.Services;
 using CineSocial.Infrastructure.Caching;
+using CineSocial.Infrastructure.CloudStorage;
 using CineSocial.Infrastructure.Data;
 using CineSocial.Infrastructure.Email;
 using CineSocial.Infrastructure.Jobs.Configuration;
@@ -48,6 +49,24 @@ public static class InfrastructureServiceExtensions
 
         // Current User Service
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        // Cloud Storage (Cloudinary)
+        services.Configure<CloudinarySettings>(options =>
+        {
+            options.CloudName = Environment.GetEnvironmentVariable("CLOUDINARY_CLOUD_NAME")
+                ?? configuration["CLOUDINARY_CLOUD_NAME"]
+                ?? string.Empty;
+            options.ApiKey = Environment.GetEnvironmentVariable("CLOUDINARY_API_KEY")
+                ?? configuration["CLOUDINARY_API_KEY"]
+                ?? string.Empty;
+            options.ApiSecret = Environment.GetEnvironmentVariable("CLOUDINARY_API_SECRET")
+                ?? configuration["CLOUDINARY_API_SECRET"]
+                ?? string.Empty;
+            options.UploadFolder = Environment.GetEnvironmentVariable("CLOUDINARY_UPLOAD_FOLDER")
+                ?? configuration["CLOUDINARY_UPLOAD_FOLDER"]
+                ?? "cinefeel";
+        });
+        services.AddScoped<ICloudStorageProvider, CloudinaryProvider>();
 
         // Image Service
         services.AddScoped<IImageService, ImageService>();
