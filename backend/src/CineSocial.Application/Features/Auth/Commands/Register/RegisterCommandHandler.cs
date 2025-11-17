@@ -88,24 +88,12 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         // Schedule email verification job (background job via Quartz)
-        try
-        {
-            var jobId = await _jobScheduler.ScheduleEmailVerificationJobAsync(
-                user.Email,
-                user.Username,
-                verificationToken,
-                cancellationToken
-            );
-
-            // Optional: Log job ID for tracking
-            Console.WriteLine($"Email verification job scheduled with ID: {jobId}");
-        }
-        catch (Exception ex)
-        {
-            // Log the error but don't fail the registration
-            // Job scheduling failed, but user is created
-            Console.WriteLine($"Failed to schedule email verification job: {ex.Message}");
-        }
+        await _jobScheduler.ScheduleEmailVerificationJobAsync(
+            user.Email,
+            user.Username,
+            verificationToken,
+            cancellationToken
+        );
 
         // Generate JWT token
         var token = _jwtService.GenerateToken(user);

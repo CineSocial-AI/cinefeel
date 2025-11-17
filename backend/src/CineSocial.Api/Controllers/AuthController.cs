@@ -1,5 +1,6 @@
 using CineSocial.Application.Features.Auth.Commands.Login;
 using CineSocial.Application.Features.Auth.Commands.Register;
+using CineSocial.Application.Features.Auth.Commands.ResendVerification;
 using CineSocial.Application.Features.Auth.Commands.VerifyEmail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -153,6 +154,27 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Resend email verification token
+    /// </summary>
+    [HttpPost("resend-verification")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ResendVerification(
+        [FromBody] ResendVerificationRequestDto request,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new ResendVerificationCommand(request.Email);
+        await _sender.Send(command, cancellationToken);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            Message = "If an account with this email exists, a new verification link has been sent.",
+            Data = null
+        });
+    }
+
+    /// <summary>
     /// Get current user profile (requires authentication)
     /// </summary>
     [HttpGet("me")]
@@ -219,6 +241,16 @@ public class LoginRequestDto
     /// </summary>
     [Required]
     public string Password { get; set; } = "Password123";
+}
+
+public class ResendVerificationRequestDto
+{
+    /// <summary>
+    /// Email address
+    /// </summary>
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = "test@example.com";
 }
 
 public class AuthResponseDto
