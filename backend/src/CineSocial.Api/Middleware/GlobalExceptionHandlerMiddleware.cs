@@ -28,12 +28,11 @@ public class GlobalExceptionHandlerMiddleware
         }
         catch (Exception exception)
         {
-            _logger.LogError(exception, "An unhandled exception occurred: {Message}", exception.Message);
-            await HandleExceptionAsync(context, exception);
+            await HandleExceptionAsync(context, exception, _logger);
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static async Task HandleExceptionAsync(HttpContext context, Exception exception, ILogger<GlobalExceptionHandlerMiddleware> logger)
     {
         int statusCode;
         Error error;
@@ -48,6 +47,15 @@ public class GlobalExceptionHandlerMiddleware
                 statusCode = (int)HttpStatusCode.InternalServerError;
                 error = Error.Unexpected("Error.Unexpected", "An unexpected error occurred");
                 break;
+        }
+
+        if (statusCode >= 500)
+        {
+            logger.LogError(exception, "An unhandled exception occurred: {Message}", exception.Message);
+        }
+        else
+        {
+            logger.LogWarning(exception, "A client-side error occurred: {Message}", exception.Message);
         }
 
         context.Response.ContentType = "application/json";
