@@ -68,8 +68,6 @@ public class TelemetryBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
             activity?.RecordException(ex);
 
-            _logger.LogError(ex, "MediatR request failed: {RequestName}", requestName);
-
             throw;
         }
         finally

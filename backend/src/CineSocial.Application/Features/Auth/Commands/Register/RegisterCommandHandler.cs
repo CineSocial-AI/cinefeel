@@ -13,11 +13,13 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IJwtService _jwtService;
+    private readonly IJobSchedulerService _jobScheduler;
 
-    public RegisterCommandHandler(IUnitOfWork unitOfWork, IJwtService jwtService)
+    public RegisterCommandHandler(IUnitOfWork unitOfWork, IJwtService jwtService, IJobSchedulerService jobScheduler)
     {
         _unitOfWork = unitOfWork;
         _jwtService = jwtService;
+        _jobScheduler = jobScheduler;
     }
 
     public async Task<Result<AuthResponse>> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -48,6 +50,9 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
             ));
         }
 
+        // Generate email verification token
+        var verificationToken = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+
         // Create new user
         var user = new AppUser
         {
@@ -57,6 +62,9 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
             PasswordHash = PasswordHasher.HashPassword(request.Password),
             Role = UserRole.User,
             IsActive = true,
+            EmailConfirmed = false,
+            EmailVerificationToken = verificationToken,
+            EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -78,6 +86,14 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Au
         await _unitOfWork.Repository<MovieList>().AddAsync(watchlist, cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Schedule email verification job (background job via Quartz)
+        await _jobScheduler.ScheduleEmailVerificationJobAsync(
+            user.Email,
+            user.Username,
+            verificationToken,
+            cancellationToken
+        );
 
         // Generate JWT token
         var token = _jwtService.GenerateToken(user);

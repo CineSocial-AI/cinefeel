@@ -1,5 +1,7 @@
 using CineSocial.Application.Features.Auth.Commands.Login;
 using CineSocial.Application.Features.Auth.Commands.Register;
+using CineSocial.Application.Features.Auth.Commands.ResendVerification;
+using CineSocial.Application.Features.Auth.Commands.VerifyEmail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -110,6 +112,69 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Verify email address with token
+    /// </summary>
+    [HttpGet("verify-email")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifyEmail(
+        [FromQuery] string token,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return BadRequest(new ApiResponse<object>
+            {
+                Success = false,
+                Message = "Token parametresi gereklidir",
+                Error = "InvalidToken"
+            });
+        }
+
+        var command = new VerifyEmailCommand(token);
+        var result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return BadRequest(new ApiResponse<object>
+            {
+                Success = false,
+                Message = result.Error.Description,
+                Error = result.Error.Code
+            });
+        }
+
+        return Ok(new ApiResponse<string>
+        {
+            Success = true,
+            Message = result.Value,
+            Data = null
+        });
+    }
+
+    /// <summary>
+    /// Resend email verification token
+    /// </summary>
+    [HttpPost("resend-verification")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ResendVerification(
+        [FromBody] ResendVerificationRequestDto request,
+        CancellationToken cancellationToken = default)
+    {
+        var command = new ResendVerificationCommand(request.Email);
+        await _sender.Send(command, cancellationToken);
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            Message = "If an account with this email exists, a new verification link has been sent.",
+            Data = null
+        });
+    }
+
+    /// <summary>
     /// Get current user profile (requires authentication)
     /// </summary>
     [HttpGet("me")]
@@ -176,6 +241,16 @@ public class LoginRequestDto
     /// </summary>
     [Required]
     public string Password { get; set; } = "Password123";
+}
+
+public class ResendVerificationRequestDto
+{
+    /// <summary>
+    /// Email address
+    /// </summary>
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = "test@example.com";
 }
 
 public class AuthResponseDto

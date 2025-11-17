@@ -941,6 +941,15 @@ namespace CineSocial.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("EmailVerificationToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("EmailVerificationTokenExpiry")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -992,6 +1001,7 @@ namespace CineSocial.Infrastructure.Migrations
                             Bio = "Regular user account",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "user@cinesocial.com",
+                            EmailConfirmed = false,
                             IsActive = true,
                             IsDeleted = false,
                             PasswordHash = "vFhI8ifMFh619o3+mMsTEQqchDzmnpU6iBB9hlWD05c=",
@@ -1004,6 +1014,7 @@ namespace CineSocial.Infrastructure.Migrations
                             Bio = "Administrator account",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@cinesocial.com",
+                            EmailConfirmed = false,
                             IsActive = true,
                             IsDeleted = false,
                             PasswordHash = "PrP+ZrMeO00Q+nC1ytSccRIpSvauTkdqHEBRVdRaoSE=",
@@ -1016,6 +1027,7 @@ namespace CineSocial.Infrastructure.Migrations
                             Bio = "Super User account with full privileges",
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "superuser@cinesocial.com",
+                            EmailConfirmed = false,
                             IsActive = true,
                             IsDeleted = false,
                             PasswordHash = "/rYp3khIqQneVhhzPPROw2jg/XEQGmxrBc7ifXfXZZA=",
@@ -1098,6 +1110,12 @@ namespace CineSocial.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("CloudPublicId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CloudUrl")
+                        .HasColumnType("text");
+
                     b.Property<string>("ContentType")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1120,6 +1138,9 @@ namespace CineSocial.Infrastructure.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("Provider")
+                        .HasColumnType("integer");
 
                     b.Property<long>("Size")
                         .HasColumnType("bigint");

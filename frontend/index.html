@@ -1285,7 +1285,13 @@
             return await apiCall(`/users/${userId}`);
         }
 
-        function getImageUrl(imageId) {
+        // Get image URL - prefers direct CloudURL, falls back to API endpoint
+        function getImageUrl(imageId, cloudUrl = null) {
+            // If cloudUrl is provided (from new API), use it directly
+            if (cloudUrl) {
+                return cloudUrl;
+            }
+            // Fallback: use API endpoint (will redirect to cloud or serve from DB)
             return imageId ? `${API_BASE}/images/${imageId}` : null;
         }
 
@@ -1737,7 +1743,26 @@
             try {
                 await login(username, password);
             } catch (error) {
-                messageEl.innerHTML = showError(error.message);
+                if (error.message.includes("Auth.EmailNotConfirmed")) {
+                    messageEl.innerHTML = showError(
+                        `Please verify your email address. <a href="#" onclick="handleResendVerification('${username}')">Resend verification email</a>`
+                    );
+                } else {
+                    messageEl.innerHTML = showError(error.message);
+                }
+            }
+        }
+
+        async function handleResendVerification(email) {
+            const messageEl = document.getElementById('authMessage');
+            try {
+                await apiCall('/auth/resend-verification', {
+                    method: 'POST',
+                    body: JSON.stringify({ email })
+                });
+                messageEl.innerHTML = showSuccess('A new verification email has been sent. Please check your inbox.');
+            } catch (error) {
+                messageEl.innerHTML = showError('Failed to resend verification email: ' + error.message);
             }
         }
 
@@ -1966,8 +1991,9 @@
             getUserProfile(currentUser.userId)
                 .then(data => {
                     const profile = data.data;
-                    const profileImageUrl = getImageUrl(profile.profileImageId);
-                    const backgroundImageUrl = getImageUrl(profile.backgroundImageId);
+                    // Use CloudURL if available (preferred), otherwise fall back to imageId
+                    const profileImageUrl = getImageUrl(profile.profileImageId, profile.profileImageUrl);
+                    const backgroundImageUrl = getImageUrl(profile.backgroundImageId, profile.backgroundImageUrl);
 
                     app.innerHTML = `
                         <div class="profile-container">

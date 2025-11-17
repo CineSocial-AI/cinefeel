@@ -55,6 +55,15 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             ));
         }
 
+        // Check if email is confirmed
+        if (!user.EmailConfirmed)
+        {
+            return Result.Failure<AuthResponse>(Error.Forbidden(
+                "Auth.EmailNotConfirmed",
+                "Please verify your email address before logging in. Check your inbox for the verification email."
+            ));
+        }
+
         // Update last login
         user.LastLoginAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
