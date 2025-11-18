@@ -17,7 +17,7 @@ public class GetMovieDetailQueryHandlerTests
 {
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
     private readonly GetMovieDetailQueryHandler _handler;
-    private readonly int _movieId = 1;
+    private readonly Guid _movieId = Guid.NewGuid();
 
     public GetMovieDetailQueryHandlerTests()
     {
@@ -37,11 +37,11 @@ public class GetMovieDetailQueryHandlerTests
             },
             MovieCasts = new List<MovieCast>
             {
-                new MovieCast { PersonId = 1, Person = new Person { Id = 1, Name = "Actor 1"}, Character = "Hero", CastOrder = 1 }
+                new MovieCast { PersonId = Guid.NewGuid(), Person = new Person { Id = Guid.NewGuid(), Name = "Actor 1"}, Character = "Hero", CastOrder = 1 }
             },
             MovieCrews = new List<MovieCrew>
             {
-                new MovieCrew { PersonId = 2, Person = new Person { Id = 2, Name = "Director 1"}, Job = "Director" }
+                new MovieCrew { PersonId = Guid.NewGuid(), Person = new Person { Id = Guid.NewGuid(), Name = "Director 1"}, Job = "Director" }
             }
         };
     }
@@ -50,7 +50,7 @@ public class GetMovieDetailQueryHandlerTests
     public async Task Should_ReturnMovieDetail_When_MovieExists()
     {
         // Arrange
-        var query = new GetMovieDetailQuery { Id = _movieId };
+        var query = new GetMovieDetailQuery(_movieId);
         var testMovie = CreateTestMovie();
         var movies = new List<MovieEntity> { testMovie }.AsQueryable();
 
@@ -74,7 +74,7 @@ public class GetMovieDetailQueryHandlerTests
     public async Task Should_ReturnNotFound_When_MovieDoesNotExist()
     {
         // Arrange
-        var query = new GetMovieDetailQuery { Id = _movieId };
+        var query = new GetMovieDetailQuery(_movieId);
         var movies = new List<MovieEntity>().AsQueryable();
 
         _unitOfWorkMock.Setup(u => u.Repository<MovieEntity>().Query()).Returns(movies.BuildMock());
