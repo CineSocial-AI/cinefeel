@@ -19,7 +19,7 @@ public class AddMovieToListCommandHandlerTests
     private readonly AddMovieToListCommandHandler _handler;
     private readonly Guid _currentUserId = Guid.NewGuid();
     private readonly Guid _movieListId = Guid.NewGuid();
-    private readonly int _movieId = 456;
+    private readonly Guid _movieId = Guid.NewGuid();
 
     public AddMovieToListCommandHandlerTests()
     {

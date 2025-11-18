@@ -20,7 +20,7 @@ public class AddCommentCommandHandlerTests
     private readonly AddCommentCommandHandler _handler;
     private readonly Guid _currentUserId = Guid.NewGuid();
     private readonly AppUser _testUser = new AppUser { Id = Guid.NewGuid(), Username = "testuser" };
-    private readonly int _movieId = 101;
+    private readonly Guid _movieId = Guid.NewGuid();
 
     public AddCommentCommandHandlerTests()
     {
@@ -63,7 +63,7 @@ public class AddCommentCommandHandlerTests
         // Arrange
         var parentCommentId = Guid.NewGuid();
         var command = new AddCommentCommand { MovieId = _movieId, Content = "I agree!", ParentCommentId = parentCommentId };
-        var parentComment = new Comment { Id = parentCommentId, MovieId = _movieId, Depth = 0 };
+        var parentComment = new Comment { Id = parentCommentId, CommentableId = _movieId, Depth = 0 };
 
         _unitOfWorkMock.Setup(u => u.Repository<MovieEntity>().Query().AnyAsync(m => m.Id == _movieId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         _unitOfWorkMock.Setup(u => u.Repository<Comment>().Query().FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<Comment, bool>>>(), It.IsAny<CancellationToken>())).ReturnsAsync(parentComment);

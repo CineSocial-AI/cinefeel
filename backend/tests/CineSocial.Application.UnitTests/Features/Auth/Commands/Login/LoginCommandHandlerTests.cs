@@ -44,7 +44,7 @@ public class LoginCommandHandlerTests
     public async Task Should_ReturnSuccessAndToken_When_CredentialsAreValid()
     {
         // Arrange
-        var command = new LoginCommand { UsernameOrEmail = "testuser", Password = "Password123!" };
+        var command = new LoginCommand("testuser", "Password123!");
         var testUser = CreateTestUser();
 
         _unitOfWorkMock.Setup(u => u.Repository<AppUser>().Query().FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<AppUser, bool>>>(), It.IsAny<CancellationToken>())).ReturnsAsync(testUser);
@@ -64,7 +64,7 @@ public class LoginCommandHandlerTests
     public async Task Should_ReturnUnauthorized_When_UserNotFound()
     {
         // Arrange
-        var command = new LoginCommand { UsernameOrEmail = "nonexistinguser", Password = "Password123!" };
+        var command = new LoginCommand("nonexistinguser", "Password123!");
 
         _unitOfWorkMock.Setup(u => u.Repository<AppUser>().Query().FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<AppUser, bool>>>(), It.IsAny<CancellationToken>())).ReturnsAsync((AppUser)null);
 
@@ -80,7 +80,7 @@ public class LoginCommandHandlerTests
     public async Task Should_ReturnUnauthorized_When_PasswordIsIncorrect()
     {
         // Arrange
-        var command = new LoginCommand { UsernameOrEmail = "testuser", Password = "WrongPassword!" };
+        var command = new LoginCommand("testuser", "WrongPassword!");
         var testUser = CreateTestUser();
 
         _unitOfWorkMock.Setup(u => u.Repository<AppUser>().Query().FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<AppUser, bool>>>(), It.IsAny<CancellationToken>())).ReturnsAsync(testUser);
@@ -97,7 +97,7 @@ public class LoginCommandHandlerTests
     public async Task Should_ReturnForbidden_When_UserIsInactive()
     {
         // Arrange
-        var command = new LoginCommand { UsernameOrEmail = "testuser", Password = "Password123!" };
+        var command = new LoginCommand("testuser", "Password123!");
         var testUser = CreateTestUser(isActive: false);
 
         _unitOfWorkMock.Setup(u => u.Repository<AppUser>().Query().FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<AppUser, bool>>>(), It.IsAny<CancellationToken>())).ReturnsAsync(testUser);
@@ -114,7 +114,7 @@ public class LoginCommandHandlerTests
     public async Task Should_ReturnForbidden_When_EmailIsNotConfirmed()
     {
         // Arrange
-        var command = new LoginCommand { UsernameOrEmail = "testuser", Password = "Password123!" };
+        var command = new LoginCommand("testuser", "Password123!");
         var testUser = CreateTestUser(emailConfirmed: false);
 
         _unitOfWorkMock.Setup(u => u.Repository<AppUser>().Query().FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<AppUser, bool>>>(), It.IsAny<CancellationToken>())).ReturnsAsync(testUser);
