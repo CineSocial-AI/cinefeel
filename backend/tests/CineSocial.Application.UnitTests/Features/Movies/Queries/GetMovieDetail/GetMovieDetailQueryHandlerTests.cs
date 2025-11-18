@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
-using CineSocial.Domain.Entities.Common;
+using CineSocial.Domain.Common;
 
 namespace CineSocial.Application.UnitTests.Features.Movies.Queries.GetMovieDetail;
 
