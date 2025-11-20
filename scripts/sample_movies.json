@@ -1,0 +1,616 @@
+[
+  {
+    "id": "0dc11362-1f9e-4224-95ad-622c6856217e",
+    "tmdbId": 1001,
+    "title": "The Matrix",
+    "originalTitle": "The Matrix",
+    "overview": "A computer hacker learns about the true nature of reality and his role in the war against its controllers.",
+    "releaseDate": "1999-03-31",
+    "runtime": 108,
+    "budget": 176157418,
+    "revenue": 161975175,
+    "posterPath": "/poster_1.jpg",
+    "backdropPath": "/backdrop_1.jpg",
+    "originalLanguage": "en",
+    "popularity": 85.4,
+    "voteAverage": 8.7,
+    "voteCount": 48881,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Science Fiction",
+      "Action"
+    ],
+    "keywords": [
+      "dystopia",
+      "artificial intelligence",
+      "virtual reality",
+      "chosen one",
+      "martial arts"
+    ]
+  },
+  {
+    "id": "a0e9c765-df13-459e-b65f-7f006f892950",
+    "tmdbId": 1002,
+    "title": "Inception",
+    "originalTitle": "Inception",
+    "overview": "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea.",
+    "releaseDate": "2010-07-16",
+    "runtime": 119,
+    "budget": 92617970,
+    "revenue": 1614629253,
+    "posterPath": "/poster_2.jpg",
+    "backdropPath": "/backdrop_2.jpg",
+    "originalLanguage": "en",
+    "popularity": 92.1,
+    "voteAverage": 8.8,
+    "voteCount": 42638,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Science Fiction",
+      "Action",
+      "Thriller"
+    ],
+    "keywords": [
+      "dream",
+      "heist",
+      "subconscious",
+      "time dilation",
+      "mind bending"
+    ]
+  },
+  {
+    "id": "d053cbde-fd8f-48d2-b666-48ec2924f8a0",
+    "tmdbId": 1003,
+    "title": "The Shawshank Redemption",
+    "originalTitle": "The Shawshank Redemption",
+    "overview": "Two imprisoned men bond over years, finding solace and eventual redemption through acts of common decency.",
+    "releaseDate": "1994-09-23",
+    "runtime": 162,
+    "budget": 159151825,
+    "revenue": 111113654,
+    "posterPath": "/poster_3.jpg",
+    "backdropPath": "/backdrop_3.jpg",
+    "originalLanguage": "en",
+    "popularity": 88.7,
+    "voteAverage": 9.3,
+    "voteCount": 37413,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Drama",
+      "Crime"
+    ],
+    "keywords": [
+      "prison",
+      "friendship",
+      "hope",
+      "escape",
+      "redemption"
+    ]
+  },
+  {
+    "id": "95786109-cfb8-4f18-9aef-32d7d83fd190",
+    "tmdbId": 1004,
+    "title": "Interstellar",
+    "originalTitle": "Interstellar",
+    "overview": "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+    "releaseDate": "2014-11-07",
+    "runtime": 160,
+    "budget": 142353994,
+    "revenue": 1220939449,
+    "posterPath": "/poster_4.jpg",
+    "backdropPath": "/backdrop_4.jpg",
+    "originalLanguage": "en",
+    "popularity": 81.3,
+    "voteAverage": 8.6,
+    "voteCount": 28514,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Science Fiction",
+      "Drama",
+      "Adventure"
+    ],
+    "keywords": [
+      "space",
+      "wormhole",
+      "time travel",
+      "father daughter",
+      "black hole"
+    ]
+  },
+  {
+    "id": "10ada20c-0212-412f-930a-00387cbc5029",
+    "tmdbId": 1005,
+    "title": "The Dark Knight",
+    "originalTitle": "The Dark Knight",
+    "overview": "Batman must accept one of the greatest psychological and physical tests to fight injustice and chaos.",
+    "releaseDate": "2008-07-18",
+    "runtime": 154,
+    "budget": 17578480,
+    "revenue": 841404284,
+    "posterPath": "/poster_5.jpg",
+    "backdropPath": "/backdrop_5.jpg",
+    "originalLanguage": "en",
+    "popularity": 95.2,
+    "voteAverage": 9.0,
+    "voteCount": 48787,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Action",
+      "Crime",
+      "Drama"
+    ],
+    "keywords": [
+      "superhero",
+      "joker",
+      "vigilante",
+      "chaos",
+      "moral dilemma"
+    ]
+  },
+  {
+    "id": "55dd117d-9f36-42d1-a9c4-96781d9601e5",
+    "tmdbId": 1006,
+    "title": "Blade Runner 2049",
+    "originalTitle": "Blade Runner 2049",
+    "overview": "A young blade runner's discovery leads him on a quest to find a former blade runner who's been missing.",
+    "releaseDate": "2017-10-06",
+    "runtime": 93,
+    "budget": 158604104,
+    "revenue": 1145313226,
+    "posterPath": "/poster_6.jpg",
+    "backdropPath": "/backdrop_6.jpg",
+    "originalLanguage": "en",
+    "popularity": 73.5,
+    "voteAverage": 8.0,
+    "voteCount": 37437,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Science Fiction",
+      "Thriller"
+    ],
+    "keywords": [
+      "dystopia",
+      "android",
+      "artificial intelligence",
+      "cyberpunk",
+      "identity"
+    ]
+  },
+  {
+    "id": "b08b90ec-b2e0-4be6-8275-2d2d598363e1",
+    "tmdbId": 1007,
+    "title": "The Godfather",
+    "originalTitle": "The Godfather",
+    "overview": "The aging patriarch of an organized crime dynasty transfers control of his empire to his reluctant son.",
+    "releaseDate": "1972-03-24",
+    "runtime": 153,
+    "budget": 198090800,
+    "revenue": 1941036524,
+    "posterPath": "/poster_7.jpg",
+    "backdropPath": "/backdrop_7.jpg",
+    "originalLanguage": "en",
+    "popularity": 87.9,
+    "voteAverage": 9.2,
+    "voteCount": 10406,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Drama",
+      "Crime"
+    ],
+    "keywords": [
+      "mafia",
+      "family",
+      "power",
+      "betrayal",
+      "Italian"
+    ]
+  },
+  {
+    "id": "195cfd09-745c-4855-a2fd-3535e7d10836",
+    "tmdbId": 1008,
+    "title": "Pulp Fiction",
+    "originalTitle": "Pulp Fiction",
+    "overview": "The lives of two mob hitmen, a boxer, and a pair of diner bandits intertwine in four tales of violence.",
+    "releaseDate": "1994-10-14",
+    "runtime": 150,
+    "budget": 25706761,
+    "revenue": 1577426255,
+    "posterPath": "/poster_8.jpg",
+    "backdropPath": "/backdrop_8.jpg",
+    "originalLanguage": "en",
+    "popularity": 84.6,
+    "voteAverage": 8.9,
+    "voteCount": 18589,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Crime",
+      "Drama",
+      "Thriller"
+    ],
+    "keywords": [
+      "nonlinear",
+      "violence",
+      "redemption",
+      "dialogue",
+      "hitman"
+    ]
+  },
+  {
+    "id": "a13e4707-2042-469d-abd2-d257736449c6",
+    "tmdbId": 1009,
+    "title": "Finding Nemo",
+    "originalTitle": "Finding Nemo",
+    "overview": "After his son is captured, a clownfish embarks on a journey to rescue him with a forgetful companion.",
+    "releaseDate": "2003-05-30",
+    "runtime": 127,
+    "budget": 197236302,
+    "revenue": 1300998723,
+    "posterPath": "/poster_9.jpg",
+    "backdropPath": "/backdrop_9.jpg",
+    "originalLanguage": "en",
+    "popularity": 76.8,
+    "voteAverage": 8.1,
+    "voteCount": 37531,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Animation",
+      "Family",
+      "Adventure"
+    ],
+    "keywords": [
+      "ocean",
+      "fish",
+      "father son",
+      "journey",
+      "disability"
+    ]
+  },
+  {
+    "id": "dd86fb8d-ff68-405d-b303-206fcd35d424",
+    "tmdbId": 1010,
+    "title": "The Avengers",
+    "originalTitle": "The Avengers",
+    "overview": "Earth's mightiest heroes must come together to stop an alien invasion threatening the planet.",
+    "releaseDate": "2012-05-04",
+    "runtime": 113,
+    "budget": 139587410,
+    "revenue": 85702876,
+    "posterPath": "/poster_10.jpg",
+    "backdropPath": "/backdrop_10.jpg",
+    "originalLanguage": "en",
+    "popularity": 89.4,
+    "voteAverage": 7.9,
+    "voteCount": 6722,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Action",
+      "Science Fiction",
+      "Adventure"
+    ],
+    "keywords": [
+      "superhero",
+      "team",
+      "alien invasion",
+      "marvel",
+      "epic battle"
+    ]
+  },
+  {
+    "id": "0b0e0b11-ebfb-499e-8105-ecbcda128b2c",
+    "tmdbId": 1011,
+    "title": "Toy Story",
+    "originalTitle": "Toy Story",
+    "overview": "A cowboy doll is threatened when a new spaceman action figure supplants him as top toy in a boy's room.",
+    "releaseDate": "1995-11-22",
+    "runtime": 90,
+    "budget": 43626015,
+    "revenue": 1429518893,
+    "posterPath": "/poster_11.jpg",
+    "backdropPath": "/backdrop_11.jpg",
+    "originalLanguage": "en",
+    "popularity": 82.1,
+    "voteAverage": 8.3,
+    "voteCount": 37652,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Animation",
+      "Family",
+      "Comedy"
+    ],
+    "keywords": [
+      "toys",
+      "jealousy",
+      "friendship",
+      "childhood",
+      "adventure"
+    ]
+  },
+  {
+    "id": "18dbeb67-7984-4cb7-8e14-a7182cc1bd42",
+    "tmdbId": 1012,
+    "title": "Goodfellas",
+    "originalTitle": "Goodfellas",
+    "overview": "The story of Henry Hill and his life in the mob, covering his relationship with his wife and partners.",
+    "releaseDate": "1990-09-19",
+    "runtime": 101,
+    "budget": 44212874,
+    "revenue": 1743841891,
+    "posterPath": "/poster_12.jpg",
+    "backdropPath": "/backdrop_12.jpg",
+    "originalLanguage": "en",
+    "popularity": 79.3,
+    "voteAverage": 8.7,
+    "voteCount": 7642,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Crime",
+      "Drama"
+    ],
+    "keywords": [
+      "mafia",
+      "gangster",
+      "true story",
+      "drugs",
+      "betrayal"
+    ]
+  },
+  {
+    "id": "b431a834-aaff-43f2-a744-c12258195a7b",
+    "tmdbId": 1013,
+    "title": "Frozen",
+    "originalTitle": "Frozen",
+    "overview": "When a kingdom is trapped in eternal winter, Anna teams up with a mountain man to find her sister Elsa.",
+    "releaseDate": "2013-11-27",
+    "runtime": 96,
+    "budget": 153703537,
+    "revenue": 928917865,
+    "posterPath": "/poster_13.jpg",
+    "backdropPath": "/backdrop_13.jpg",
+    "originalLanguage": "en",
+    "popularity": 91.7,
+    "voteAverage": 7.4,
+    "voteCount": 28461,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Animation",
+      "Family",
+      "Fantasy"
+    ],
+    "keywords": [
+      "sisters",
+      "ice",
+      "magic",
+      "disney",
+      "musical"
+    ]
+  },
+  {
+    "id": "a609ada2-5804-41a4-8da4-4861e2d06eb5",
+    "tmdbId": 1014,
+    "title": "Arrival",
+    "originalTitle": "Arrival",
+    "overview": "A linguist works with the military to communicate with aliens after mysterious spacecraft appear worldwide.",
+    "releaseDate": "2016-11-11",
+    "runtime": 98,
+    "budget": 108954492,
+    "revenue": 1551552478,
+    "posterPath": "/poster_14.jpg",
+    "backdropPath": "/backdrop_14.jpg",
+    "originalLanguage": "en",
+    "popularity": 71.2,
+    "voteAverage": 7.9,
+    "voteCount": 24832,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Science Fiction",
+      "Drama"
+    ],
+    "keywords": [
+      "alien",
+      "language",
+      "time perception",
+      "communication",
+      "first contact"
+    ]
+  },
+  {
+    "id": "83d0f9ff-57de-488f-8a71-f8b76bf9c5a4",
+    "tmdbId": 1015,
+    "title": "The Lion King",
+    "originalTitle": "The Lion King",
+    "overview": "Lion prince Simba flees his kingdom after his father's death, only to learn the true meaning of responsibility.",
+    "releaseDate": "1994-06-24",
+    "runtime": 166,
+    "budget": 112843997,
+    "revenue": 1981504728,
+    "posterPath": "/poster_15.jpg",
+    "backdropPath": "/backdrop_15.jpg",
+    "originalLanguage": "en",
+    "popularity": 93.8,
+    "voteAverage": 8.5,
+    "voteCount": 16882,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Animation",
+      "Family",
+      "Drama"
+    ],
+    "keywords": [
+      "animals",
+      "africa",
+      "coming of age",
+      "revenge",
+      "musical"
+    ]
+  },
+  {
+    "id": "03b75170-fc8a-4b16-b1dd-cace7e54e4c6",
+    "tmdbId": 1016,
+    "title": "Ex Machina",
+    "originalTitle": "Ex Machina",
+    "overview": "A programmer is invited to administer the Turing test to an intelligent humanoid robot.",
+    "releaseDate": "2014-04-10",
+    "runtime": 96,
+    "budget": 121332868,
+    "revenue": 278933915,
+    "posterPath": "/poster_16.jpg",
+    "backdropPath": "/backdrop_16.jpg",
+    "originalLanguage": "en",
+    "popularity": 68.9,
+    "voteAverage": 7.6,
+    "voteCount": 15033,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Science Fiction",
+      "Drama",
+      "Thriller"
+    ],
+    "keywords": [
+      "artificial intelligence",
+      "turing test",
+      "consciousness",
+      "manipulation",
+      "android"
+    ]
+  },
+  {
+    "id": "a3813e34-6f5b-4417-883f-630528d956b2",
+    "tmdbId": 1017,
+    "title": "The Silence of the Lambs",
+    "originalTitle": "The Silence of the Lambs",
+    "overview": "A young FBI cadet seeks the advice of an imprisoned cannibal to catch another serial killer.",
+    "releaseDate": "1991-02-14",
+    "runtime": 140,
+    "budget": 175881993,
+    "revenue": 648066728,
+    "posterPath": "/poster_17.jpg",
+    "backdropPath": "/backdrop_17.jpg",
+    "originalLanguage": "en",
+    "popularity": 77.4,
+    "voteAverage": 8.6,
+    "voteCount": 28577,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Crime",
+      "Drama",
+      "Thriller"
+    ],
+    "keywords": [
+      "serial killer",
+      "fbi",
+      "psychological",
+      "cat and mouse",
+      "manipulation"
+    ]
+  },
+  {
+    "id": "c65af075-802a-437d-8b00-c721808b8384",
+    "tmdbId": 1018,
+    "title": "Jurassic Park",
+    "originalTitle": "Jurassic Park",
+    "overview": "A pragmatic paleontologist visiting a theme park fights for survival when power fails and dinosaurs escape.",
+    "releaseDate": "1993-06-11",
+    "runtime": 172,
+    "budget": 58203242,
+    "revenue": 1658546887,
+    "posterPath": "/poster_18.jpg",
+    "backdropPath": "/backdrop_18.jpg",
+    "originalLanguage": "en",
+    "popularity": 86.5,
+    "voteAverage": 8.1,
+    "voteCount": 32835,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Science Fiction",
+      "Adventure",
+      "Thriller"
+    ],
+    "keywords": [
+      "dinosaurs",
+      "genetic engineering",
+      "theme park",
+      "survival",
+      "chaos theory"
+    ]
+  },
+  {
+    "id": "5e4a7155-146d-491e-990d-9ede3ed9e668",
+    "tmdbId": 1019,
+    "title": "Her",
+    "originalTitle": "Her",
+    "overview": "In a near future, a lonely writer develops an unlikely relationship with an operating system.",
+    "releaseDate": "2013-12-18",
+    "runtime": 153,
+    "budget": 102863714,
+    "revenue": 1328850609,
+    "posterPath": "/poster_19.jpg",
+    "backdropPath": "/backdrop_19.jpg",
+    "originalLanguage": "en",
+    "popularity": 69.7,
+    "voteAverage": 7.9,
+    "voteCount": 17958,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Science Fiction",
+      "Drama",
+      "Romance"
+    ],
+    "keywords": [
+      "artificial intelligence",
+      "loneliness",
+      "technology",
+      "voice",
+      "future"
+    ]
+  },
+  {
+    "id": "bc22cb90-3938-4df4-ba08-804a5c5a20e6",
+    "tmdbId": 1020,
+    "title": "Mad Max: Fury Road",
+    "originalTitle": "Mad Max: Fury Road",
+    "overview": "In a post-apocalyptic wasteland, a woman rebels against a tyrannical ruler in search of her homeland.",
+    "releaseDate": "2015-05-15",
+    "runtime": 142,
+    "budget": 103697666,
+    "revenue": 733298490,
+    "posterPath": "/poster_20.jpg",
+    "backdropPath": "/backdrop_20.jpg",
+    "originalLanguage": "en",
+    "popularity": 75.6,
+    "voteAverage": 7.9,
+    "voteCount": 21509,
+    "status": "Released",
+    "adult": false,
+    "genres": [
+      "Action",
+      "Science Fiction",
+      "Adventure"
+    ],
+    "keywords": [
+      "post apocalyptic",
+      "desert",
+      "chase",
+      "survival",
+      "feminism"
+    ]
+  }
+]

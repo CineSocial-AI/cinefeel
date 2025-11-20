@@ -1,4 +1,5 @@
 using CineSocial.Domain.Common;
+using Pgvector;
 
 namespace CineSocial.Domain.Entities.Movie;
 
@@ -23,6 +24,9 @@ public class MovieEntity : BaseAuditableEntity
     public string? Tagline { get; set; }
     public string? Homepage { get; set; }
     public bool Adult { get; set; } = false;
+    
+    // Vector embedding for content-based recommendations
+    public Vector? ContentEmbedding { get; set; }
 
     // Navigation properties
     public ICollection<MovieGenre> MovieGenres { get; set; } = new List<MovieGenre>();

@@ -58,6 +58,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Enable pgvector extension
+        modelBuilder.HasPostgresExtension("vector");
+
         // Apply configurations from assembly
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
