@@ -1,0 +1,39 @@
+[
+  {
+    "movie": "The Matrix",
+    "expected_similar": [
+      "Inception",
+      "Blade Runner 2049",
+      "Interstellar",
+      "Ex Machina"
+    ],
+    "reason": "All are science fiction with dystopian/AI themes"
+  },
+  {
+    "movie": "Finding Nemo",
+    "expected_similar": [
+      "Toy Story",
+      "The Lion King",
+      "Frozen"
+    ],
+    "reason": "All are animated family-friendly movies"
+  },
+  {
+    "movie": "The Godfather",
+    "expected_similar": [
+      "Goodfellas",
+      "Pulp Fiction",
+      "The Shawshank Redemption"
+    ],
+    "reason": "All are crime/drama films"
+  },
+  {
+    "movie": "Ex Machina",
+    "expected_similar": [
+      "Her",
+      "The Matrix",
+      "Blade Runner 2049"
+    ],
+    "reason": "All explore artificial intelligence and consciousness"
+  }
+]
