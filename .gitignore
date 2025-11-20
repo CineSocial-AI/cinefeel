@@ -91,7 +91,7 @@ bld/
 *.userosscache
 *.sln.docstates
 /src/CineSocial.Infrastructure/Migrations
-*.md
+# *.md  # Commented out - documentation should be tracked
 *.log
 *.ps1
 *.sh
