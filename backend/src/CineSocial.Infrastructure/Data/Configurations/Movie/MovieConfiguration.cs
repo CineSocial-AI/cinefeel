@@ -55,6 +55,11 @@ public class MovieConfiguration : IEntityTypeConfiguration<MovieEntity>
         builder.Property(m => m.Revenue)
             .HasColumnType("decimal(18,2)");
 
+        // Configure vector embedding for content-based recommendations
+        // Using 384 dimensions (common for sentence transformers like all-MiniLM-L6-v2)
+        builder.Property(m => m.ContentEmbedding)
+            .HasColumnType("vector(384)");
+
         builder.HasIndex(m => m.Popularity);
         builder.HasIndex(m => m.VoteAverage);
         builder.HasIndex(m => m.ReleaseDate);

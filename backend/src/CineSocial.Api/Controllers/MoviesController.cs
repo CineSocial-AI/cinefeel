@@ -6,6 +6,7 @@ using CineSocial.Application.Features.Movies.Queries.GetFilteredMovies;
 using CineSocial.Application.Features.Movies.Queries.GetGenres;
 using CineSocial.Application.Features.Movies.Queries.GetMovieDetail;
 using CineSocial.Application.Features.Movies.Queries.GetMovies;
+using CineSocial.Application.Features.Movies.Queries.GetMovieRecommendations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -204,5 +205,40 @@ public class MoviesController : ControllerBase
             Success = true,
             Message = "Movie removed from favorites successfully"
         });
+    }
+
+    /// <summary>
+    /// Get content-based movie recommendations
+    /// </summary>
+    /// <param name="movieId">The ID of the movie to get recommendations for</param>
+    /// <param name="limit">Number of recommendations to return (default: 10, max: 50)</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>List of similar movies based on content features</returns>
+    [HttpGet("{movieId:guid}/recommendations")]
+    [ProducesResponseType(typeof(ApiResponse<List<MovieRecommendationDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMovieRecommendations(
+        Guid movieId,
+        [FromQuery] int limit = 10,
+        CancellationToken cancellationToken = default)
+    {
+        // Limit maximum recommendations
+        if (limit > 50) limit = 50;
+        if (limit < 1) limit = 1;
+
+        var query = new GetMovieRecommendationsQuery
+        {
+            MovieId = movieId,
+            Limit = limit
+        };
+        
+        var result = await _sender.Send(query, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return StatusCode(result.Error.GetHttpStatusCode(), result.ToApiResponse());
+        }
+
+        return Ok(result.ToApiResponse());
     }
 }
