@@ -1,3 +1,4 @@
+using CineSocial.Application.Common.Interfaces;
 using CineSocial.Domain.Entities.Movie;
 using Pgvector;
 using System.Security.Cryptography;
@@ -10,7 +11,7 @@ namespace CineSocial.Infrastructure.Services;
 /// This is a simple implementation using feature hashing.
 /// In production, consider using proper embedding models like sentence transformers.
 /// </summary>
-public class MovieEmbeddingService
+public class MovieEmbeddingService : IMovieEmbeddingService
 {
     private const int EmbeddingDimensions = 384;
 
