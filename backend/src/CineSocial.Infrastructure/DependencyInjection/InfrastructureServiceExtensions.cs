@@ -25,10 +25,13 @@ public static class InfrastructureServiceExtensions
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // Database
-        var connectionString = Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")
-            ?? configuration["DATABASE_CONNECTION_STRING"]
-            ?? BuildConnectionString(configuration);
+        // Database - Try DATABASE_URL first (Neon), then fall back to individual environment variables
+        var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+        var connectionString = !string.IsNullOrEmpty(databaseUrl)
+            ? ConvertPostgresUrlToConnectionString(databaseUrl)
+            : Environment.GetEnvironmentVariable("DATABASE_CONNECTION_STRING")
+              ?? configuration["DATABASE_CONNECTION_STRING"]
+              ?? BuildConnectionString(configuration);
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString));
@@ -145,6 +148,32 @@ public static class InfrastructureServiceExtensions
         var username = configuration["DATABASE_USER"];
         var password = configuration["DATABASE_PASSWORD"];
         var sslMode = configuration["DATABASE_SSL_MODE"] ?? "Require";
+
+        return $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode={sslMode};Trust Server Certificate=true";
+    }
+
+    private static string ConvertPostgresUrlToConnectionString(string databaseUrl)
+    {
+        // Parse PostgreSQL URL format: postgresql://user:password@host:port/database?params
+        var uri = new Uri(databaseUrl);
+        var userInfo = uri.UserInfo.Split(':');
+        var username = userInfo[0];
+        var password = userInfo.Length > 1 ? userInfo[1] : "";
+        var host = uri.Host;
+        var port = uri.Port > 0 ? uri.Port : 5432;
+        var database = uri.AbsolutePath.TrimStart('/');
+
+        // Parse query parameters for SSL mode
+        var sslMode = "Require";
+        if (!string.IsNullOrEmpty(uri.Query))
+        {
+            var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            var sslModeParam = queryParams["sslmode"];
+            if (!string.IsNullOrEmpty(sslModeParam))
+            {
+                sslMode = sslModeParam.ToLower() == "require" ? "Require" : "Prefer";
+            }
+        }
 
         return $"Host={host};Port={port};Database={database};Username={username};Password={password};SSL Mode={sslMode};Trust Server Certificate=true";
     }

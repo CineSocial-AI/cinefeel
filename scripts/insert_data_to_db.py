@@ -68,15 +68,54 @@ def load_env_file(env_path: Path):
 # Load environment variables
 ENV_VARS = load_env_file(ENV_FILE)
 
-# PostgreSQL Connection String from .env
-DB_CONFIG = {
-    'host': ENV_VARS['DATABASE_HOST'],
-    'port': int(ENV_VARS['DATABASE_PORT']),
-    'database': ENV_VARS['DATABASE_NAME'],
-    'user': ENV_VARS['DATABASE_USER'],
-    'password': ENV_VARS['DATABASE_PASSWORD'],
-    'sslmode': ENV_VARS['DATABASE_SSL_MODE'].lower()
-}
+def parse_database_url(url: str) -> dict:
+    """Parse PostgreSQL URL to connection config"""
+    from urllib.parse import urlparse, parse_qs
+
+    parsed = urlparse(url)
+    config = {
+        'host': parsed.hostname,
+        'port': parsed.port or 5432,
+        'database': parsed.path.lstrip('/'),
+        'user': parsed.username,
+        'password': parsed.password,
+    }
+
+    # Parse SSL mode from query parameters
+    if parsed.query:
+        params = parse_qs(parsed.query)
+        if 'sslmode' in params:
+            config['sslmode'] = params['sslmode'][0]
+        else:
+            config['sslmode'] = 'require'
+    else:
+        config['sslmode'] = 'require'
+
+    return config
+
+def get_db_config(db_type: str = 'local') -> dict:
+    """Get database configuration based on type (local or neon)"""
+    if db_type == 'neon':
+        database_url = ENV_VARS.get('DATABASE_URL')
+        if not database_url:
+            logger.error("DATABASE_URL not found in .env file for Neon database")
+            raise ValueError("DATABASE_URL not found in .env file")
+        logger.info("[DB] Using Neon PostgreSQL database")
+        return parse_database_url(database_url)
+    else:
+        # Local database configuration
+        logger.info("[DB] Using local PostgreSQL database")
+        return {
+            'host': ENV_VARS.get('DATABASE_HOST', 'localhost'),
+            'port': int(ENV_VARS.get('DATABASE_PORT', 5432)),
+            'database': ENV_VARS.get('DATABASE_NAME', 'CINE'),
+            'user': ENV_VARS.get('DATABASE_USER', 'cinesocial'),
+            'password': ENV_VARS.get('DATABASE_PASSWORD', 'cinesocial123'),
+            'sslmode': ENV_VARS.get('DATABASE_SSL_MODE', 'disable').lower()
+        }
+
+# Global DB_CONFIG will be set in main
+DB_CONFIG = None
 
 def get_db_connection():
     """PostgreSQL connection"""
@@ -244,6 +283,16 @@ if __name__ == '__main__':
         default=50,
         help='The number of movies to insert in each batch. Default is 50.'
     )
+    parser.add_argument(
+        '--db',
+        type=str,
+        choices=['local', 'neon'],
+        default='neon',
+        help='Database to use: "local" for local PostgreSQL or "neon" for Neon cloud database. Default is neon.'
+    )
     args = parser.parse_args()
-    
+
+    # Set global DB_CONFIG based on database type
+    DB_CONFIG = get_db_config(args.db)
+
     process_csv_and_insert(args.batch_size)
